@@ -224,6 +224,56 @@ async function checkForNewStoriesAndNotify(stories) {
   saveJSON(SUBSCRIPTIONS_FILE, subscriptions);
 }
 
+// Fetch a story's article page and pull its og:image meta tag — this works
+// for virtually any publisher since it's the same image used for social
+// sharing previews. Used as a fallback when the RSS feed itself has no image
+// (which is most Google News items).
+async function fetchOgImage(url) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+  try {
+    const res = await fetch(url, {
+      redirect: 'follow',
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
+      }
+    });
+    if (!res.ok) return null;
+    // Only read enough of the page to find the meta tag (usually in <head>) —
+    // avoids downloading full article HTML/images just for one meta value.
+    const reader = res.body.getReader();
+    let html = '';
+    const decoder = new TextDecoder();
+    for (let i = 0; i < 30; i++) { // cap how much we read, ~30 chunks is plenty for <head>
+      const { done, value } = await reader.read();
+      if (done) break;
+      html += decoder.decode(value, { stream: true });
+      if (html.includes('</head>') || html.length > 50000) break;
+    }
+    reader.cancel().catch(() => {});
+    const match = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+      || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+    return match ? match[1] : null;
+  } catch (err) {
+    return null; // timeout, network error, blocked, etc. — just skip the image
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+// Run og:image lookups for stories missing one, a few at a time so we don't
+// fire 50+ concurrent requests (slow, and some hosts will rate-limit that).
+async function fillMissingImages(stories, concurrency = 5, cap = 25) {
+  const missing = stories.filter(s => !s.image && s.link).slice(0, cap);
+  for (let i = 0; i < missing.length; i += concurrency) {
+    const batch = missing.slice(i, i + concurrency);
+    await Promise.all(batch.map(async (story) => {
+      story.image = await fetchOgImage(story.link);
+    }));
+  }
+}
+
 async function fetchAllFeeds() {
   const results = await Promise.allSettled(
     FEEDS.map(async (feed) => {
@@ -266,6 +316,9 @@ async function fetchAllFeeds() {
 
   // Newest first
   stories.sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
+
+  // Fetch og:image for stories the RSS feed didn't provide one for
+  await fillMissingImages(stories);
 
   return { stories, errors, fetchedAt: new Date().toISOString() };
 }
