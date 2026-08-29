@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>BLR. — Bangalore, in short</title>
+
+<!--
+  ADSENSE CONFIG
+  Once your AdSense account is approved:
+  1. Fill in ADSENSE_CLIENT_ID (looks like "ca-pub-1234567890123456") and
+     ADSENSE_SLOT_ID (a per-ad-unit number from your AdSense dashboard) near
+     the top of the JavaScript section, further down this file.
+  2. Deploy the app to a live domain — AdSense won't serve real ads on
+     localhost, only on the public URL you registered.
+  3. Add an ads.txt file at your domain's root (see public/ads.txt in this
+     project — fill in your publisher ID there too).
+  Until both IDs are filled in, the app shows the friendly "Advertisement"
+  placeholder instead, so you can keep developing without broken ad requests.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0B10;
+    --surface:#16161F;
+    --text:#F5F5F7;
+    --muted:#8B8B99;
+    --violet:#A78BFA;
+    --pink:#F472B6;
+    --orange:#FB923C;
+    --border:#26263252;
+    --border-solid:#26263A;
+    --radius:16px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:76px;
+  }
+  header{
+    position:sticky; top:0; z-index:20;
+    background:var(--bg);
+    padding:20px 18px 16px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid var(--border-solid);
+  }
+  .wordmark{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:800; font-size:23px; letter-spacing:-0.02em;
+    background:linear-gradient(90deg,#A78BFA,#F472B6 55%,#FB923C);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .wordmark .dot-suffix{color:var(--pink); -webkit-text-fill-color:var(--pink);}
+  .meta-time{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px; color:var(--muted);
+    text-align:right; line-height:1.4;
+  }
+  .meta-time b{color:var(--text); display:block; font-size:12px;}
+
+  .glow-bar{
+    height:3px; width:100%;
+    background:linear-gradient(90deg,#A78BFA,#F472B6 50%,#FB923C);
+  }
+
+  .chips{
+    display:flex; gap:8px; overflow-x:auto;
+    padding:16px 18px; scrollbar-width:none;
+  }
+  .chips::-webkit-scrollbar{display:none;}
+  .chip{
+    flex:0 0 auto;
+    font-family:'JetBrains Mono',monospace; font-weight:500;
+    font-size:11px; text-transform:uppercase; letter-spacing:0.04em;
+    padding:8px 15px; border-radius:999px;
+    border:1px solid var(--border-solid);
+    background:var(--surface);
+    color:var(--muted);
+    white-space:nowrap;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .chip.active{
+    border-color:transparent;
+    color:#fff;
+    background:linear-gradient(90deg,#A78BFA,#F472B6);
+  }
+
+  .feed{
+    max-width:640px; margin:0 auto;
+    padding:16px;
+    display:flex; flex-direction:column; gap:14px;
+  }
+
+  .search-wrap{ max-width:640px; margin:0 auto; padding:0 16px 8px; }
+  .search-input{
+    width:100%; padding:11px 16px; border-radius:10px;
+    border:1px solid var(--border-solid); background:var(--surface);
+    color:var(--text); font-family:'Inter',sans-serif; font-size:14px;
+    outline:none;
+  }
+  .search-input::placeholder{ color:var(--muted); }
+  .search-input:focus{ border-color:var(--violet); }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border-solid);
+    border-radius:var(--radius);
+    overflow:hidden;
+  }
+  .card-image{
+    width:100%; aspect-ratio:16/9; object-fit:cover;
+    display:block; background:#1E1E2A;
+  }
+  .card-image-placeholder{
+    width:100%; aspect-ratio:16/9;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg,#1E1B2E,#241826);
+    font-family:'Space Grotesk',sans-serif; font-weight:700;
+    font-size:14px; color:var(--violet); letter-spacing:0.02em; text-transform:uppercase;
+  }
+  .card-body{ padding:20px; }
+  .eyebrow{
+    display:flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em;
+    color:var(--muted);
+    margin-bottom:10px;
+  }
+  .dot{width:7px; height:7px; border-radius:50%; flex:0 0 auto; box-shadow:0 0 8px currentColor;}
+  h2{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:19px; line-height:1.3; font-weight:700;
+    margin-bottom:8px; letter-spacing:-0.01em;
+    color:var(--text);
+  }
+  p.summary{
+    font-size:14.5px; line-height:1.55; color:#B4B4C2;
+    margin-bottom:14px;
+  }
+  .card-footer{
+    display:flex; align-items:center; justify-content:space-between;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px; color:var(--muted);
+  }
+  .card-actions{ display:flex; align-items:center; gap:14px; }
+  .bookmark-btn{
+    background:none; border:none; cursor:pointer; padding:0;
+    color:var(--muted); display:flex; align-items:center;
+  }
+  .bookmark-btn svg{ width:17px; height:17px; }
+  .bookmark-btn.saved{ color:var(--orange); }
+  .bookmark-btn.saved svg{ fill:var(--orange); }
+  .read-more{
+    display:flex; align-items:center; gap:4px;
+    color:var(--pink); font-family:'Inter',sans-serif;
+    font-size:12.5px; font-weight:700; cursor:pointer;
+    text-decoration:none;
+  }
+
+  /* Ad slot */
+  .ad-slot{
+    border:1.5px dashed #3A2E4A;
+    border-radius:var(--radius);
+    padding:22px 18px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:6px;
+    background:#17141F;
+    color:#7A7488;
+    text-align:center;
+    min-height:100px;
+  }
+  .ad-slot .ad-label{
+    font-family:'Space Grotesk',sans-serif; font-weight:700;
+    font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--violet);
+  }
+  .ad-slot .ad-sub{
+    font-size:12px; color:#6E6880;
+  }
+  .ad-unit-wrap{
+    border-radius:var(--radius); overflow:hidden;
+    min-height:100px; display:flex; align-items:center; justify-content:center;
+    background:var(--surface); border:1px solid var(--border-solid);
+  }
+
+  /* Bottom nav */
+  nav.bottom{
+    position:fixed; bottom:0; left:0; right:0; z-index:20;
+    background:var(--surface);
+    border-top:1px solid var(--border-solid);
+    display:flex; justify-content:space-around;
+    padding:10px 8px calc(10px + env(safe-area-inset-bottom));
+  }
+  .nav-item{
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    color:var(--muted); font-size:10px; font-family:'JetBrains Mono',monospace;
+    cursor:pointer;
+  }
+  .nav-item.active{color:var(--pink);}
+  .nav-item svg{width:20px; height:20px;}
+
+  @media (min-width:640px){
+    .feed{padding:22px 0;}
+  }
+
+  .footer-links{
+    max-width:640px; margin:8px auto 0; padding:0 16px;
+    text-align:center; font-size:12px; color:var(--muted);
+  }
+  .footer-links a{ color:var(--muted); text-decoration:none; }
+  .footer-links a:hover{ color:var(--pink); }
+</style>
+</head>
+<body>
+
+  <header>
+    <div class="wordmark">BLR<span class="dot-suffix">.</span></div>
+    <div class="meta-time">
+      <b id="clock">--:--</b>
+      <span id="dateline">Bengaluru</span>
+    </div>
+  </header>
+  <div class="glow-bar"></div>
+
+  <div class="chips">
+    <div class="chip active">All</div>
+    <div class="chip">Traffic</div>
+    <div class="chip">Civic</div>
+    <div class="chip">Tech</div>
+    <div class="chip">Metro</div>
+    <div class="chip">Weather</div>
+    <div class="chip">Karnataka</div>
+    <div class="chip">South India</div>
+  </div>
+
+  <div class="search-wrap">
+    <input type="text" id="searchInput" class="search-input" placeholder="Search stories…" autocomplete="off">
+  </div>
+
+  <main class="feed" id="feed"></main>
+
+  <div class="footer-links">
+    <a href="/privacy.html">Privacy Policy</a>
+  </div>
+
+  <nav class="bottom">
+    <div class="nav-item active" id="navHome">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+      Home
+    </div>
+    <div class="nav-item" style="opacity:.4; cursor:default;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
+      Trending
+    </div>
+    <div class="nav-item" id="navSaved">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12v18l-6-4-6 4V3z"/></svg>
+      Saved
+    </div>
+    <div class="nav-item" id="navNotify">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span id="notifyLabel">Notify</span>
+    </div>
+  </nav>
+
+<script>
+  // ---- Live clock ----
+  function tick(){
+    const d = new Date();
+    document.getElementById('clock').textContent =
+      d.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+    document.getElementById('dateline').textContent =
+      d.toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'}) + ' · Bengaluru';
+  }
+  tick(); setInterval(tick, 30000);
+
+  // ---- Mock content (swap for RSS/API feed later) ----
+  const CATS = {
+    Traffic: '#FB7185',
+    Civic: '#34D399',
+    Tech: '#818CF8',
+    Metro: '#FBBF24',
+    Weather: '#38BDF8',
+    Karnataka: '#C084FC',
+    'South India': '#F97316'
+  };
+
+  // Fallback mock data — used only if the /api/news backend isn't reachable
+  // (e.g. you're opening this file directly instead of running `node server.js`)
+  const FALLBACK_STORIES = [
+    {cat:'Metro', headline:'Yellow Line trial runs begin between RV Road and Bommasandra', summary:'BMRCL has started trial runs on the Yellow Line, connecting RV Road to Electronics City and Bommasandra. Commercial operations are expected in the coming months, easing the commute for thousands working along the Hosur Road tech corridor.', source:'Metro Desk', time:'18m ago'},
+    {cat:'Traffic', headline:'Silk Board junction to see night-time lane restrictions this week', summary:'BBMP traffic police have announced temporary night closures near Silk Board for underpass maintenance work. Commuters are advised to use the Hosur Road service lane or plan alternate routes between 11pm and 5am through Thursday.', source:'Traffic Desk', time:'42m ago'},
+    {cat:'Civic', headline:'BBMP begins pothole survey ahead of monsoon season', summary:'Civic body teams have started ward-wise road audits across the city, flagging over 400 stretches for repair before the rains intensify. Residents can report potholes via the BBMP app, officials said, promising a two-week turnaround.', source:'Civic Desk', time:'1h ago'},
+    {cat:'Tech', headline:'Whitefield tech park adds new shuttle routes for employees', summary:'A major tech park in Whitefield has expanded its shuttle network to cover Marathahalli and KR Puram, aiming to cut employee commute times. The move comes as more firms return to hybrid office schedules this quarter.', source:'Business Desk', time:'2h ago'}
+  ];
+
+  const feed = document.getElementById('feed');
+
+  // ---- Bookmarks (stored in this browser via localStorage) ----
+  const SAVED_KEY = 'blr_saved_articles';
+
+  function getSavedStories(){
+    try { return JSON.parse(localStorage.getItem(SAVED_KEY) || '{}'); }
+    catch { return {}; }
+  }
+  function setSavedStories(obj){
+    localStorage.setItem(SAVED_KEY, JSON.stringify(obj));
+  }
+  function storyId(s){ return s.link || s.headline; }
+  function isSaved(id){ return !!getSavedStories()[id]; }
+  function toggleSaved(story){
+    const saved = getSavedStories();
+    const id = storyId(story);
+    if (saved[id]) delete saved[id];
+    else saved[id] = story;
+    setSavedStories(saved);
+    refresh();
+  }
+
+  function bookmarkIcon(active){
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M6 4h12v17l-6-4-6 4V4z"/>
+    </svg>`;
+  }
+
+  // ---- App state ----
+  let allStories = [];
+  let currentMode = 'home';      // 'home' | 'saved'
+  let currentCategory = 'All';
+  let currentSearch = '';
+
+  function computeVisibleStories(){
+    let source = currentMode === 'saved'
+      ? Object.values(getSavedStories()).sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0))
+      : allStories;
+
+    if (currentCategory !== 'All') {
+      source = source.filter(s => s.cat === currentCategory);
+    }
+    if (currentSearch.trim()) {
+      const q = currentSearch.trim().toLowerCase();
+      source = source.filter(s =>
+        (s.headline || '').toLowerCase().includes(q) ||
+        (s.summary || '').toLowerCase().includes(q)
+      );
+    }
+    return source;
+  }
+
+  // ---- AdSense config ----
+  // Fill these in once your AdSense account is approved (see the comment at
+  // the top of this file). Leave blank to keep showing the dev placeholder.
+  const ADSENSE_CLIENT_ID = ''; // e.g. 'ca-pub-1234567890123456'
+  const ADSENSE_SLOT_ID = '';   // e.g. '9876543210'
+  const ADSENSE_ENABLED = !!(ADSENSE_CLIENT_ID && ADSENSE_SLOT_ID);
+
+  let adUnitCounter = 0;
+
+  // Load the AdSense script once, only if configured — avoids a failed
+  // network request cluttering the console during local development.
+  if (ADSENSE_ENABLED) {
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`;
+    script.crossOrigin = 'anonymous';
+    document.head.appendChild(script);
+  }
+
+  function adSlot(size){
+    if (!ADSENSE_ENABLED) {
+      return `<div class="ad-slot">
+        <div class="ad-label">Advertisement</div>
+        <div class="ad-sub">${size} · space reserved for ad partner</div>
+      </div>`;
+    }
+    adUnitCounter++;
+    return `<div class="ad-unit-wrap">
+      <ins class="adsbygoogle"
+        id="ad-unit-${adUnitCounter}"
+        style="display:block;width:100%"
+        data-ad-client="${ADSENSE_CLIENT_ID}"
+        data-ad-slot="${ADSENSE_SLOT_ID}"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+    </div>`;
+  }
+
+  // AdSense only auto-initializes units present at page load — anything
+  // inserted dynamically (like our feed cards) needs its own push() call.
+  function initNewAdUnits(){
+    if (!ADSENSE_ENABLED || !window.adsbygoogle) return;
+    document.querySelectorAll('ins.adsbygoogle:not([data-adsbygoogle-status])').forEach(() => {
+      try { (window.adsbygoogle = window.adsbygoogle || []).push({}); }
+      catch (err) { console.warn('AdSense push failed:', err); }
+    });
+  }
+
+  function emptyState(){
+    if (currentMode === 'saved') {
+      return `<div class="ad-slot" style="border-color:#4A3A5A;">
+        <div class="ad-label">No saved stories yet</div>
+        <div class="ad-sub">Tap the bookmark icon on any story to save it here</div>
+      </div>`;
+    }
+    return `<div class="ad-slot" style="border-color:#4A3A5A;">
+      <div class="ad-label">No stories match</div>
+      <div class="ad-sub">Try a different category or search term</div>
+    </div>`;
+  }
+
+  function renderStories(stories, opts = {}){
+    feed.innerHTML = '';
+
+    if (opts.banner) {
+      feed.insertAdjacentHTML('beforeend', opts.banner);
+    }
+
+    if (!stories.length) {
+      feed.insertAdjacentHTML('beforeend', emptyState());
+      return;
+    }
+
+    stories.forEach((s, i) => {
+      const color = CATS[s.cat] || '#8A8370';
+      const id = storyId(s);
+      const saved = isSaved(id);
+      const imageBlock = s.image
+        ? `<img class="card-image" src="${s.image}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'card-image-placeholder',textContent:'${s.cat}'}))">`
+        : `<div class="card-image-placeholder">${s.cat}</div>`;
+      feed.insertAdjacentHTML('beforeend', `
+        <article class="card">
+          ${imageBlock}
+          <div class="card-body">
+            <div class="eyebrow">
+              <span class="dot" style="background:${color}"></span>
+              ${s.cat}
+            </div>
+            <h2>${s.headline}</h2>
+            <p class="summary">${s.summary}</p>
+            <div class="card-footer">
+              <span>${s.source} · ${s.time || ''}</span>
+              <div class="card-actions">
+                <button class="bookmark-btn${saved ? ' saved' : ''}" data-id="${id}" aria-label="Save story" type="button">
+                  ${bookmarkIcon(saved)}
+                </button>
+                <a class="read-more" href="${s.link || '#'}" target="_blank" rel="noopener">Read more →</a>
+              </div>
+            </div>
+          </div>
+        </article>
+      `);
+      if (currentMode === 'home' && (i + 1) % 4 === 0 && i !== stories.length - 1) {
+        feed.insertAdjacentHTML('beforeend', adSlot('320×100'));
+      }
+    });
+
+    if (currentMode === 'home') {
+      feed.insertAdjacentHTML('beforeend', adSlot('300×250'));
+    }
+
+    // Wire up bookmark buttons for the cards just rendered
+    feed.querySelectorAll('.bookmark-btn').forEach(btn => {
+      btn.onclick = () => {
+        const story = stories.find(s => storyId(s) === btn.dataset.id);
+        if (story) toggleSaved(story);
+      };
+    });
+
+    initNewAdUnits();
+  }
+
+  function refresh(){
+    renderStories(computeVisibleStories());
+  }
+
+  // ---- Category chips ----
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.onclick = () => {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentCategory = chip.textContent.trim();
+      refresh();
+    };
+  });
+
+  // ---- Search ----
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('input', () => {
+    currentSearch = searchInput.value;
+    refresh();
+  });
+
+  // ---- Home / Saved nav tabs ----
+  document.getElementById('navHome').onclick = () => {
+    currentMode = 'home';
+    document.getElementById('navHome').classList.add('active');
+    document.getElementById('navSaved').classList.remove('active');
+    refresh();
+  };
+  document.getElementById('navSaved').onclick = () => {
+    currentMode = 'saved';
+    document.getElementById('navSaved').classList.add('active');
+    document.getElementById('navHome').classList.remove('active');
+    refresh();
+  };
+
+  async function loadNews(){
+    try {
+      const res = await fetch('/api/news');
+      if (!res.ok) throw new Error('bad response');
+      const data = await res.json();
+      if (!data.stories || !data.stories.length) throw new Error('empty');
+      allStories = data.stories;
+      refresh();
+    } catch (err) {
+      // Backend not running / not deployed yet — show fallback data with a subtle notice
+      allStories = FALLBACK_STORIES;
+      renderStories(computeVisibleStories(), {
+        banner: `<div class="ad-slot" style="border-color:#4A3A5A;">
+          <div class="ad-label">Offline preview</div>
+          <div class="ad-sub">Showing sample stories — run \`node server.js\` to load live news</div>
+        </div>`
+      });
+    }
+  }
+
+  // ---- Push notifications ----
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+  }
+
+  const navNotify = document.getElementById('navNotify');
+  const notifyLabel = document.getElementById('notifyLabel');
+
+  function setNotifyUI(subscribed){
+    navNotify.classList.toggle('active', subscribed);
+    notifyLabel.textContent = subscribed ? 'On' : 'Notify';
+  }
+
+  async function initPushUI(){
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      navNotify.style.opacity = '.4';
+      navNotify.style.cursor = 'default';
+      notifyLabel.textContent = 'N/A';
+      return;
+    }
+    try {
+      const reg = await navigator.serviceWorker.register('/service-worker.js');
+      const existing = await reg.pushManager.getSubscription();
+      setNotifyUI(!!existing);
+    } catch (err) {
+      console.warn('Service worker registration failed:', err);
+    }
+  }
+
+  async function subscribeToPush(){
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') return;
+
+    const reg = await navigator.serviceWorker.ready;
+    const { publicKey } = await fetch('/api/vapid-public-key').then(r => r.json());
+    const subscription = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicKey)
+    });
+
+    await fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(subscription)
+    });
+    setNotifyUI(true);
+  }
+
+  async function unsubscribeFromPush(){
+    const reg = await navigator.serviceWorker.ready;
+    const subscription = await reg.pushManager.getSubscription();
+    if (subscription) {
+      await fetch('/api/unsubscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpoint: subscription.endpoint })
+      });
+      await subscription.unsubscribe();
+    }
+    setNotifyUI(false);
+  }
+
+  navNotify.onclick = async () => {
+    const reg = await navigator.serviceWorker?.ready.catch(() => null);
+    const existing = reg ? await reg.pushManager.getSubscription() : null;
+    if (existing) unsubscribeFromPush();
+    else subscribeToPush();
+  };
+
+  initPushUI();
+
+  loadNews();
+</script>
+</body>
+</html>
