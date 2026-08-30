@@ -317,11 +317,13 @@ async function fillMissingImages(stories, concurrency = 5, cap = 25) {
 async function fetchAllFeeds() {
   // The Hindu's general RSS feed runs either way — it's free, no credit cost,
   // and gives good broad Karnataka coverage alongside whichever category
-  // source (NewsData.io or Google News) we use below.
+  // NewsData.io's free tier has a built-in ~12-hour delay on data — great for
+  // reliable images and direct links, but not fresh. Google News RSS has no
+  // such delay, so we run both together: NewsData for quality, Google News to
+  // fill in what's happened more recently. Duplicate coverage of the same
+  // real-world story gets deduped below by comparing normalized headlines.
   const hindu = FEEDS.find(f => f.name === 'The Hindu');
-  const categoryFeeds = NEWSDATA_ENABLED
-    ? [] // NewsData.io covers all 7 categories directly, so skip the Google News RSS feeds entirely
-    : FEEDS.filter(f => f.isGoogleNews);
+  const categoryFeeds = FEEDS.filter(f => f.isGoogleNews);
 
   const rssJobs = [hindu, ...categoryFeeds].map(async (feed) => {
     const parsed = await parser.parseURL(feed.url);
@@ -373,11 +375,23 @@ async function fetchAllFeeds() {
   // Newest first
   stories.sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
 
-  // Fetch og:image for stories that still don't have one (NewsData.io usually
-  // provides image_url directly, so this mostly matters for Google News mode)
-  await fillMissingImages(stories);
+  // Dedupe: the same real-world story can now come from both NewsData.io and
+  // Google News. Compare normalized headlines (lowercased, punctuation
+  // stripped) — keep the first occurrence, which after the sort above is
+  // whichever version is newest/most-recently-dated.
+  const seenHeadlines = new Set();
+  const deduped = stories.filter((s) => {
+    const normalized = s.headline.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+    if (!normalized || seenHeadlines.has(normalized)) return false;
+    seenHeadlines.add(normalized);
+    return true;
+  });
 
-  return { stories, errors, fetchedAt: new Date().toISOString() };
+  // Fetch og:image for stories that still don't have one (NewsData.io usually
+  // provides image_url directly, so this mostly matters for Google News items)
+  await fillMissingImages(deduped);
+
+  return { stories: deduped, errors, fetchedAt: new Date().toISOString() };
 }
 
 app.get('/api/news', async (req, res) => {
