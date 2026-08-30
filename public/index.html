@@ -426,7 +426,7 @@
       const id = storyId(s);
       const saved = isSaved(id);
       const imageBlock = s.image
-        ? `<img class="card-image" src="${s.image}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'card-image-placeholder',textContent:'${s.cat}'}))">`
+        ? `<img class="card-image" src="${s.image}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'card-image-placeholder',textContent:'${s.cat}'}))">`
         : `<div class="card-image-placeholder">${s.cat}</div>`;
       feed.insertAdjacentHTML('beforeend', `
         <article class="card">

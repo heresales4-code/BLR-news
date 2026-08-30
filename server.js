@@ -74,7 +74,7 @@ async function fetchFromNewsData(category, query) {
     time: timeAgo(item.pubDate),
     pubDate: item.pubDate || null,
     link: item.link || '',
-    image: item.image_url || null
+    image: upgradeToHttps(item.image_url) || null
   }));
 }
 
@@ -97,6 +97,14 @@ const parser = new Parser({
     ]
   }
 });
+
+// Some sources return http:// image URLs, which browsers silently block on
+// an https:// site (mixed content policy) — upgrading to https fixes most of
+// these without needing to verify each source individually.
+function upgradeToHttps(url) {
+  if (!url) return url;
+  return url.startsWith('http://') ? url.replace('http://', 'https://') : url;
+}
 
 // Pull the best available image URL out of the various places feeds put it
 function extractImage(item) {
@@ -294,7 +302,7 @@ async function fetchOgImage(url) {
     reader.cancel().catch(() => {});
     const match = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
       || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-    return match ? match[1] : null;
+    return match ? upgradeToHttps(match[1]) : null;
   } catch (err) {
     return null; // timeout, network error, blocked, etc. — just skip the image
   } finally {
@@ -346,7 +354,7 @@ async function fetchAllFeeds() {
         time: timeAgo(item.isoDate || item.pubDate),
         pubDate: item.isoDate || item.pubDate || null,
         link: item.link || '',
-        image: extractImage(item)
+        image: upgradeToHttps(extractImage(item))
       };
     });
   });
