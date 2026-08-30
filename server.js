@@ -208,6 +208,37 @@ function timeAgo(dateStr) {
 // Classify a story by keywords in its headline + summary, since a single broad
 // feed (e.g. "Karnataka news") covers many topics, not just its assigned label.
 // Order matters — first matching category wins, so more specific ones go first.
+// NewsData.io pads out thin category queries with loosely-related national
+// content instead of just returning fewer results (same padding behavior we
+// found with old dates) — a story about Gujarat civic works or Delhi road
+// cleaning has no business in a Bangalore-focused feed. Require every story
+// to actually mention Bangalore/Bengaluru/Karnataka, a Karnataka district or
+// city, or a well-known Bangalore-specific civic body/acronym.
+const KARNATAKA_RELEVANCE_PATTERN = new RegExp(
+  '\\b(' + [
+    'bengaluru', 'bangalore', 'karnataka', 'namma metro',
+    // Karnataka districts / major cities (covers Karnataka-wide, not just city)
+    'mysuru', 'mysore', 'hubballi', 'hubli', 'dharwad', 'belagavi', 'belgaum',
+    'kalaburagi', 'gulbarga', 'mangaluru', 'mangalore', 'shivamogga', 'shimoga',
+    'tumakuru', 'tumkur', 'davanagere', 'vijayapura', 'bijapur', 'ballari', 'bellary',
+    'raichur', 'bidar', 'chikkamagaluru', 'chikmagalur', 'hassan', 'mandya',
+    'kolar', 'chitradurga', 'haveri', 'gadag', 'koppal', 'yadgir',
+    'chamarajanagar', 'kodagu', 'coorg', 'udupi', 'dakshina kannada',
+    'uttara kannada', 'bagalkot', 'ramanagara', 'chikkaballapur', 'vijayanagara',
+    // Bangalore-specific civic/transit bodies — a strong local signal even
+    // when the story doesn't spell out the city name
+    'bbmp', 'bmrcl', 'bwssb', 'bescom', 'ksrtc', 'gba', 'silk board',
+    'whitefield', 'koramangala', 'indiranagar', 'electronic city', 'yelahanka',
+    'jayanagar', 'malleswaram', 'hebbal', 'marathahalli', 'hsr layout'
+  ].join('|') + ')\\b',
+  'i'
+);
+
+function isKarnatakaRelevant(story) {
+  const text = `${story.headline} ${story.summary}`;
+  return KARNATAKA_RELEVANCE_PATTERN.test(text);
+}
+
 const CATEGORY_KEYWORDS = [
   ['Metro', /\b(metro|bmrcl|namma metro|yellow line|purple line|pink line)\b/i],
   ['Traffic', /\b(traffic|flyover|junction|underpass|road closure|signal|accident|vehicle|bike rider|truck|lane)\b/i],
@@ -429,12 +460,16 @@ async function fetchAllFeeds() {
     return true;
   });
 
+  // Drop stories that don't actually mention Bangalore/Karnataka anywhere —
+  // see isKarnatakaRelevant for why this is needed.
+  const relevant = deduped.filter(isKarnatakaRelevant);
+
   // NewsData.io pads out thin category queries with old matching articles
   // rather than just returning fewer results — we've seen stories months old
   // sneak in. Drop anything older than a week so the feed actually feels like
   // "latest news" instead of a mixed timeline going back months.
   const MAX_STORY_AGE_MS = 7 * 24 * 60 * 60 * 1000;
-  const fresh = deduped.filter((s) => {
+  const fresh = relevant.filter((s) => {
     if (!s.pubDate) return true; // keep undated items rather than guessing
     return (Date.now() - new Date(s.pubDate).getTime()) <= MAX_STORY_AGE_MS;
   });
