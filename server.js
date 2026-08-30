@@ -42,15 +42,20 @@ let seenLinks = new Set(loadJSON(SEEN_LINKS_FILE, []));
 // below — we query 6 categories, so keep fetches to roughly once an hour
 // (6 categories × 24 times/day = 144 credits, leaving good headroom).
 // Leave this blank to keep using the Google News RSS feeds below instead.
-const NEWSDATA_API_KEY = 'pub_466c76fa865748d492e9f8e87ed39a49'; // e.g. 'pub_1234567890abcdef...'
+// Read from an environment variable (set in Render's dashboard under
+// Environment) rather than hardcoding it here — this keeps it out of your
+// public GitHub repo entirely. Set NEWSDATA_API_KEY in Render's Environment
+// tab; locally you can still set it by running:
+//   set NEWSDATA_API_KEY=pub_yourkeyhere && node server.js   (Windows)
+const NEWSDATA_API_KEY = process.env.NEWSDATA_API_KEY || '';
 const NEWSDATA_ENABLED = !!NEWSDATA_API_KEY;
 
 const NEWSDATA_QUERIES = [
   { category: 'Traffic', q: 'Bangalore traffic OR BBMP road' },
   { category: 'Metro', q: 'Namma Metro Bengaluru' },
   { category: 'Tech', q: 'Bangalore startup OR tech' },
-  { category: 'Weather', q: 'Bangalore weather OR rain OR monsoon' },
   { category: 'Civic', q: 'BBMP OR Bengaluru civic' },
+  { category: 'Civic', q: 'Bangalore weather OR rain OR monsoon' },
   { category: 'Karnataka', q: 'Karnataka news' }
 ];
 
@@ -152,7 +157,7 @@ const FEEDS = [
   {
     name: 'Google News',
     url: 'https://news.google.com/rss/search?q=Bangalore+weather+OR+rain+OR+monsoon&hl=en-IN&gl=IN&ceid=IN:en',
-    category: 'Weather',
+    category: 'Civic',
     isGoogleNews: true
   },
   {
@@ -197,10 +202,9 @@ function timeAgo(dateStr) {
 // Order matters — first matching category wins, so more specific ones go first.
 const CATEGORY_KEYWORDS = [
   ['Metro', /\b(metro|bmrcl|namma metro|yellow line|purple line|pink line)\b/i],
-  ['Weather', /\b(rain|rainfall|monsoon|flood|weather|forecast|cyclone|heatwave|drought)\b/i],
   ['Traffic', /\b(traffic|flyover|junction|underpass|road closure|signal|accident|vehicle|bike rider|truck|lane)\b/i],
   ['Tech', /\b(tech|startup|it sector|software|whitefield|silicon|funding|layoff|infosys|wipro|electronics city)\b/i],
-  ['Civic', /\b(bbmp|bwssb|civic|garbage|pothole|sewage|municipal|water supply|encroachment)\b/i]
+  ['Civic', /\b(bbmp|bwssb|civic|garbage|pothole|sewage|municipal|water supply|encroachment|rain|rainfall|monsoon|flood|weather|forecast|cyclone|heatwave|drought)\b/i]
 ];
 
 function categorize(text, fallback) {
