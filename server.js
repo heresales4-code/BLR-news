@@ -383,15 +383,49 @@ async function fetchAllFeeds() {
   // Newest first
   stories.sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
 
-  // Dedupe: the same real-world story can now come from both NewsData.io and
-  // Google News. Compare normalized headlines (lowercased, punctuation
-  // stripped) — keep the first occurrence, which after the sort above is
-  // whichever version is newest/most-recently-dated.
-  const seenHeadlines = new Set();
+  // Clean up headlines/summaries some sources format oddly (e.g. Inshorts
+  // bakes "| Inshorts" into their own titles, on top of what Google News
+  // already appends as a source suffix).
+  stories.forEach((s) => {
+    s.headline = s.headline.replace(/\s*\|\s*Inshorts\s*$/i, '').trim();
+    // If the summary just repeats the headline (some sources/Google News
+    // quirks do this), drop it rather than showing visible duplication.
+    const normHeadline = s.headline.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+    const normSummary = (s.summary || '').toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+    if (normSummary && (normSummary === normHeadline || normHeadline.startsWith(normSummary) || normSummary.startsWith(normHeadline))) {
+      s.summary = '';
+    }
+  });
+
+  // Dedupe near-duplicate coverage of the same real-world story across
+  // sources. Different outlets word the same event completely differently
+  // (e.g. "Srinath spotted on Metro" vs "Srinath's Metro photo goes viral"),
+  // so exact-match isn't enough — compare significant word overlap instead.
+  // Keeps the first occurrence, which after the sort above is the newest.
+  const STOPWORDS = new Set(['the','a','an','of','in','on','at','to','for','and','or','is','are','with','his','her','their','after','over']);
+  function significantWords(text) {
+    return new Set(
+      text.toLowerCase()
+        .replace(/'s\b/g, '')          // strip possessive 's before removing other punctuation
+        .replace(/[^a-z0-9 ]/g, '')
+        .split(/\s+/)
+        .filter(w => w.length > 2 && !STOPWORDS.has(w))
+    );
+  }
+  function wordOverlapRatio(a, b) {
+    if (!a.size || !b.size) return 0;
+    let shared = 0;
+    for (const w of a) if (b.has(w)) shared++;
+    return shared / Math.min(a.size, b.size);
+  }
+
+  const seenWordSets = [];
   const deduped = stories.filter((s) => {
-    const normalized = s.headline.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
-    if (!normalized || seenHeadlines.has(normalized)) return false;
-    seenHeadlines.add(normalized);
+    if (!s.headline) return false;
+    const words = significantWords(s.headline);
+    const isDuplicate = seenWordSets.some(prev => wordOverlapRatio(words, prev) >= 0.4);
+    if (isDuplicate) return false;
+    seenWordSets.push(words);
     return true;
   });
 

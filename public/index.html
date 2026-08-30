@@ -430,7 +430,7 @@
               ${s.cat}
             </div>
             <h2>${s.headline}</h2>
-            <p class="summary">${s.summary}</p>
+            ${s.summary ? `<p class="summary">${s.summary}</p>` : ''}
             <div class="card-footer">
               <span>${s.source} · ${s.time || ''}</span>
               <div class="card-actions">
