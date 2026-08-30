@@ -117,13 +117,6 @@
     width:100%; aspect-ratio:16/9; object-fit:cover;
     display:block; background:#1E1E2A;
   }
-  .card-image-placeholder{
-    width:100%; aspect-ratio:16/9;
-    display:flex; align-items:center; justify-content:center;
-    background:linear-gradient(135deg,#1E1B2E,#241826);
-    font-family:'Space Grotesk',sans-serif; font-weight:700;
-    font-size:14px; color:var(--violet); letter-spacing:0.02em; text-transform:uppercase;
-  }
   .card-body{ padding:20px; }
   .eyebrow{
     display:flex; align-items:center; gap:8px;
@@ -426,8 +419,8 @@
       const id = storyId(s);
       const saved = isSaved(id);
       const imageBlock = s.image
-        ? `<img class="card-image" src="${s.image}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'card-image-placeholder',textContent:'${s.cat}'}))">`
-        : `<div class="card-image-placeholder">${s.cat}</div>`;
+        ? `<img class="card-image" src="${s.image}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`
+        : '';
       feed.insertAdjacentHTML('beforeend', `
         <article class="card">
           ${imageBlock}
