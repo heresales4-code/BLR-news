@@ -34,6 +34,45 @@ function saveJSON(file, data) {
 let subscriptions = loadJSON(SUBSCRIPTIONS_FILE, []);
 let seenLinks = new Set(loadJSON(SEEN_LINKS_FILE, []));
 
+// ---- NewsData.io (optional, recommended) ----
+// Sign up free at https://newsdata.io, get an API key, and paste it below.
+// This fixes two problems with Google News RSS: (1) it gives direct publisher
+// links instead of Google's JS-redirect interstitial, and (2) it returns real
+// article images. Free tier: 200 credits/day, 1 credit per category query
+// below — we query 6 categories, so keep fetches to roughly once an hour
+// (6 categories × 24 times/day = 144 credits, leaving good headroom).
+// Leave this blank to keep using the Google News RSS feeds below instead.
+const NEWSDATA_API_KEY = 'pub_466c76fa865748d492e9f8e87ed39a49'; // e.g. 'pub_1234567890abcdef...'
+const NEWSDATA_ENABLED = !!NEWSDATA_API_KEY;
+
+const NEWSDATA_QUERIES = [
+  { category: 'Traffic', q: 'Bangalore traffic OR BBMP road' },
+  { category: 'Metro', q: 'Namma Metro Bengaluru' },
+  { category: 'Tech', q: 'Bangalore startup OR tech' },
+  { category: 'Weather', q: 'Bangalore weather OR rain OR monsoon' },
+  { category: 'Civic', q: 'BBMP OR Bengaluru civic' },
+  { category: 'Karnataka', q: 'Karnataka news' }
+];
+
+async function fetchFromNewsData(category, query) {
+  const url = `https://newsdata.io/api/1/latest?apikey=${NEWSDATA_API_KEY}&q=${encodeURIComponent(query)}&country=in&language=en`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+  if (!res.ok) throw new Error(`NewsData.io returned ${res.status} for "${category}"`);
+  const data = await res.json();
+  if (data.status !== 'success') throw new Error(`NewsData.io error: ${data.message || 'unknown'}`);
+
+  return (data.results || []).slice(0, 10).map((item) => ({
+    cat: category,
+    headline: item.title || '',
+    summary: trimSummary(item.description || ''),
+    source: item.source_name || item.source_id || 'NewsData',
+    time: timeAgo(item.pubDate),
+    pubDate: item.pubDate || null,
+    link: item.link || '',
+    image: item.image_url || null
+  }));
+}
+
 // Many news sites 403 the default Node.js user-agent as basic bot-defense —
 // a browser-like UA header gets past that for legitimate feed reading.
 // customFields tells rss-parser to also pull out media/image tags, which most
@@ -69,8 +108,11 @@ function extractImage(item) {
   return null;
 }
 
-// Cache news for 10 minutes so we don't hammer source sites on every page load
-const cache = new NodeCache({ stdTTL: 600 });
+// Cache TTL: 10 min normally, but if NewsData.io is enabled we back off to an
+// hour, since its free tier only allows 200 credits/day (1 per category query,
+// 7 categories = 7 credits per fetch — hourly keeps us at ~168/day, safely
+// under budget with room for manual refreshes).
+const cache = new NodeCache({ stdTTL: NEWSDATA_ENABLED ? 3600 : 600 });
 
 app.use(cors());
 app.use(express.static('public'));
@@ -123,12 +165,6 @@ const FEEDS = [
     name: 'Google News',
     url: 'https://news.google.com/rss/search?q=Karnataka+news&hl=en-IN&gl=IN&ceid=IN:en',
     category: 'Karnataka',
-    isGoogleNews: true
-  },
-  {
-    name: 'Google News',
-    url: 'https://news.google.com/rss/search?q=South+India+OR+Chennai+OR+Hyderabad+OR+Kochi+news&hl=en-IN&gl=IN&ceid=IN:en',
-    category: 'South India',
     isGoogleNews: true
   }
   // Add more feeds here as you find good ones. Give each a `category` matching
@@ -275,33 +311,49 @@ async function fillMissingImages(stories, concurrency = 5, cap = 25) {
 }
 
 async function fetchAllFeeds() {
-  const results = await Promise.allSettled(
-    FEEDS.map(async (feed) => {
-      const parsed = await parser.parseURL(feed.url);
-      return parsed.items.slice(0, 10).map((item) => {
-        const summaryText = item.contentSnippet || item.content || item.summary || '';
-        let headline = item.title || '';
-        let source = feed.name;
+  // The Hindu's general RSS feed runs either way — it's free, no credit cost,
+  // and gives good broad Karnataka coverage alongside whichever category
+  // source (NewsData.io or Google News) we use below.
+  const hindu = FEEDS.find(f => f.name === 'The Hindu');
+  const categoryFeeds = NEWSDATA_ENABLED
+    ? [] // NewsData.io covers all 7 categories directly, so skip the Google News RSS feeds entirely
+    : FEEDS.filter(f => f.isGoogleNews);
 
-        if (feed.isGoogleNews) {
-          const parsed = parseGoogleNewsItem(item, feed.name);
-          headline = parsed.headline;
-          source = parsed.source;
-        }
+  const rssJobs = [hindu, ...categoryFeeds].map(async (feed) => {
+    const parsed = await parser.parseURL(feed.url);
+    return parsed.items.slice(0, 10).map((item) => {
+      const summaryText = item.contentSnippet || item.content || item.summary || '';
+      let headline = item.title || '';
+      let source = feed.name;
 
-        return {
-          cat: feed.isGoogleNews ? feed.category : categorize(`${headline} ${summaryText}`, feed.category),
-          headline,
-          summary: trimSummary(summaryText),
-          source,
-          time: timeAgo(item.isoDate || item.pubDate),
-          pubDate: item.isoDate || item.pubDate || null,
-          link: item.link || '',
-          image: extractImage(item)
-        };
-      });
-    })
-  );
+      if (feed.isGoogleNews) {
+        const parsedItem = parseGoogleNewsItem(item, feed.name);
+        headline = parsedItem.headline;
+        source = parsedItem.source;
+      }
+
+      return {
+        cat: feed.isGoogleNews ? feed.category : categorize(`${headline} ${summaryText}`, feed.category),
+        headline,
+        summary: trimSummary(summaryText),
+        source,
+        time: timeAgo(item.isoDate || item.pubDate),
+        pubDate: item.isoDate || item.pubDate || null,
+        link: item.link || '',
+        image: extractImage(item)
+      };
+    });
+  });
+
+  const newsDataJobs = NEWSDATA_ENABLED
+    ? NEWSDATA_QUERIES.map(({ category, q }) => fetchFromNewsData(category, q))
+    : [];
+
+  const allJobs = [...rssJobs, ...newsDataJobs];
+  const jobLabels = [hindu, ...categoryFeeds].map(f => f.name)
+    .concat(NEWSDATA_ENABLED ? NEWSDATA_QUERIES.map(q => `NewsData.io (${q.category})`) : []);
+
+  const results = await Promise.allSettled(allJobs);
 
   const stories = [];
   const errors = [];
@@ -310,14 +362,15 @@ async function fetchAllFeeds() {
     if (r.status === 'fulfilled') {
       stories.push(...r.value);
     } else {
-      errors.push({ feed: FEEDS[i].name, error: r.reason.message });
+      errors.push({ feed: jobLabels[i], error: r.reason.message });
     }
   });
 
   // Newest first
   stories.sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
 
-  // Fetch og:image for stories the RSS feed didn't provide one for
+  // Fetch og:image for stories that still don't have one (NewsData.io usually
+  // provides image_url directly, so this mostly matters for Google News mode)
   await fillMissingImages(stories);
 
   return { stories, errors, fetchedAt: new Date().toISOString() };
@@ -376,8 +429,11 @@ app.post('/api/unsubscribe', (req, res) => {
   res.json({ success: true });
 });
 
-// Poll feeds in the background every 10 minutes so notifications can fire even
-// when nobody currently has the page open (as long as the server is running).
+// Poll feeds in the background so notifications can fire even when nobody
+// currently has the page open (as long as the server is running). Interval
+// matches the cache TTL above — hourly when NewsData.io is enabled to respect
+// its free-tier daily credit budget, otherwise every 10 minutes.
+const BACKGROUND_POLL_INTERVAL = NEWSDATA_ENABLED ? 60 * 60 * 1000 : 10 * 60 * 1000;
 setInterval(async () => {
   try {
     const data = await fetchAllFeeds();
@@ -386,7 +442,7 @@ setInterval(async () => {
   } catch (err) {
     console.error('Background feed poll failed:', err.message);
   }
-}, 10 * 60 * 1000);
+}, BACKGROUND_POLL_INTERVAL);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
