@@ -429,11 +429,21 @@ async function fetchAllFeeds() {
     return true;
   });
 
+  // NewsData.io pads out thin category queries with old matching articles
+  // rather than just returning fewer results — we've seen stories months old
+  // sneak in. Drop anything older than a week so the feed actually feels like
+  // "latest news" instead of a mixed timeline going back months.
+  const MAX_STORY_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+  const fresh = deduped.filter((s) => {
+    if (!s.pubDate) return true; // keep undated items rather than guessing
+    return (Date.now() - new Date(s.pubDate).getTime()) <= MAX_STORY_AGE_MS;
+  });
+
   // Fetch og:image for stories that still don't have one (NewsData.io usually
   // provides image_url directly, so this mostly matters for Google News items)
-  await fillMissingImages(deduped);
+  await fillMissingImages(fresh);
 
-  return { stories: deduped, errors, fetchedAt: new Date().toISOString() };
+  return { stories: fresh, errors, fetchedAt: new Date().toISOString() };
 }
 
 app.get('/api/news', async (req, res) => {
