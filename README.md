@@ -2,37 +2,65 @@
 
 ## Run it locally
 1. `npm install`
-2. `node server.js`
+2. Set your APITube API key (see below), then `node server.js`
 3. Open http://localhost:3000
 
-## Features
-- **Live news** from The Hindu (Karnataka) plus category-specific Google News
-  feeds for Traffic, Metro, Tech, Weather, Civic, Karnataka, and South India.
-- **Search** — filters the current feed by headline/summary as you type.
-- **Bookmarks** — tap the bookmark icon on any story to save it (stored in
-  your browser via localStorage). View saved stories from the "Saved" tab.
-- **Push notifications** — tap "Notify" in the bottom nav to subscribe. The
-  server checks feeds every 10 minutes in the background and pushes a
-  notification when genuinely new stories appear (skips the very first run
-  so you don't get flooded on startup).
+## News source: APITube
+Sign up free at https://apitube.io — no credit card needed. Their free tier
+(1,000 requests/day) is genuinely real-time (no delay, unlike most "free"
+news APIs) and explicitly permits commercial use, confirmed directly on
+their site. This app checks 6 category queries every 15 minutes
+(~576 requests/day, safely under the 1,000/day limit).
+
+Set the key as an environment variable, not hardcoded in the code:
+- **Render**: dashboard → your service → Environment tab → add
+  `APITUBE_API_KEY` = your key → Save (triggers auto-redeploy)
+- **Local Windows testing**: `set APITUBE_API_KEY=your_key_here && node server.js`
+
+Without a key set, the app still runs but returns zero live stories (the
+frontend falls back to sample data with an "Offline preview" notice).
+
+## Why not Google News or NewsData.io?
+Both were tried and removed:
+- **Google News**: Google's own Terms of Service explicitly ban using it
+  "to increase traffic to your Web site for commercial reasons, such as
+  advertising sales" — directly conflicts with running ads.
+- **NewsData.io**: free tier works, and explicitly permits commercial use,
+  but has a built-in ~12-hour delay on data, which defeats the point of a
+  "latest news" app. Removing the 12-hour delay requires their $199.99/month
+  Basic plan — too expensive for this project's stage.
+- **The Hindu, Deccan Herald, Indian Express, Bangalore Mirror**: all
+  checked directly — each either explicitly restricts commercial/ad-supported
+  use in their RSS terms, or (Bangalore Mirror) had a broken feed URL.
 
 ## How the backend works
-- `server.js` fetches feeds, strips HTML, trims each summary to ~60 words,
-  classifies stories by category, and caches results for 10 minutes.
+- `server.js` queries APITube for 6 categories, strips HTML, trims each
+  summary to ~60 words, and caches results for 15 minutes.
 - `GET /api/news` — cached news (fast)
-- `GET /api/news/refresh` — force a fresh fetch, bypassing cache
+- `GET /api/news/refresh` — force a fresh fetch, bypassing cache (careful —
+  this also counts against your daily APITube quota, so don't automate it)
 - `GET /api/vapid-public-key` — public key for the push subscription flow
 - `POST /api/subscribe` / `POST /api/unsubscribe` — manage push subscriptions
-- Two small JSON files (`subscriptions.json`, `seen-links.json`) are created
-  automatically to persist push subscribers and "already notified" story
-  links across server restarts — safe to delete either to reset that state.
+- `POST /api/newsletter/subscribe` — stores an email address (no sending
+  built yet)
+- Three small JSON files (`subscriptions.json`, `seen-links.json`,
+  `newsletter-emails.json`) are created automatically to persist state
+  across server restarts — safe to delete any of them to reset that state.
 
-## If feeds return 403 or 404
-Some sites block requests from datacenter/cloud IPs (Cloudflare-style bot
-protection) — try running from a residential connection first. 404s usually
-mean the publisher moved their RSS URL; check their site for the current one.
-The Google News search feeds are generally the most reliable since they
-aggregate from many sources.
+## Filters applied to every story
+- **Relevance**: must mention Bangalore/Bengaluru/Karnataka, a Karnataka
+  district/city, or a known local civic body (BBMP, BMRCL, etc.) — drops
+  off-topic national content some queries can return.
+- **Recency**: nothing older than 7 days makes it into the feed.
+- **Dedup**: compares meaningful word overlap between headlines (not just
+  exact matches) so the same real-world story covered by two outlets with
+  different wording doesn't show up twice.
+
+## Before running ads
+This app's current source (APITube) explicitly permits commercial use on
+its free tier — but if you add more sources later, check each one's terms
+first. Many major Indian publishers (Deccan Herald, Indian Express, and
+likely others) restrict RSS use for commercial/ad-supported pages.
 
 ## Setting up real ads (Google AdSense)
 The ad slots currently show a friendly placeholder. To switch them to real ads:
@@ -49,22 +77,11 @@ The ad slots currently show a friendly placeholder. To switch them to real ads:
 6. Redeploy. The placeholders will automatically switch to real ad units —
    no other code changes needed.
 
-Worth knowing: AdSense's policies favor sites with substantial original
-content. Since this app mainly aggregates headlines from other publishers,
-approval isn't guaranteed — adding your own commentary, local context, or
-original write-ups alongside the aggregated stories can help.
-
-## Before running ads against any feed
-Check each publisher's RSS terms first. Deccan Herald, for example, explicitly
-disallows using their RSS feed on a page run "for commercial gain" — which would
-include ad-supported pages. Confirm terms per source before monetizing.
-
-## Adding more sources
-Add entries to the `FEEDS` array in `server.js`. For a normal publisher feed:
-{ name: 'Source Name', url: 'https://.../feed.rss', category: 'Traffic' }
-For a Google News search feed (recommended for reliability):
-{ name: 'Google News', url: 'https://news.google.com/rss/search?q=YOUR+QUERY&hl=en-IN&gl=IN&ceid=IN:en', category: 'Traffic', isGoogleNews: true }
-`category` should match one of the chip filters in the frontend.
+## Adding more sources later
+Add entries to the `APITUBE_QUERIES` array in `server.js` — each needs a
+`category` (matching a UI chip) and a `q` search query. Check APITube's docs
+at https://docs.apitube.io for the full query syntax (supports AND/OR/NOT,
+exact phrases, and more).
 
 ## Push notifications in production
 The VAPID keys in `server.js` are hardcoded for local development. Before
