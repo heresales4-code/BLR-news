@@ -56,12 +56,12 @@ const APITUBE_API_KEY = process.env.APITUBE_API_KEY || '';
 const APITUBE_ENABLED = !!APITUBE_API_KEY;
 
 const APITUBE_QUERIES = [
-  { category: 'Traffic', q: 'Bangalore traffic OR BBMP road' },
-  { category: 'Metro', q: 'Namma Metro Bengaluru' },
-  { category: 'Tech', q: 'Bangalore startup OR tech' },
-  { category: 'Civic', q: 'BBMP OR Bengaluru civic' },
-  { category: 'Civic', q: 'Bangalore weather OR rain OR monsoon' },
-  { category: 'Karnataka', q: 'Karnataka news' }
+  { category: 'Traffic', q: '"Bangalore traffic" OR "Bengaluru traffic" OR "BBMP road" OR "Silk Board" OR flyover' },
+  { category: 'Metro', q: '"Namma Metro" OR "Bengaluru Metro" OR "Bangalore Metro" OR BMRCL' },
+  { category: 'Tech', q: '"Bangalore startup" OR "Bengaluru startup" OR "Bangalore tech" OR Whitefield' },
+  { category: 'Civic', q: 'BBMP OR "Bengaluru civic" OR "Bangalore civic"' },
+  { category: 'Civic', q: '"Bangalore weather" OR "Bengaluru weather" OR rain OR monsoon' },
+  { category: 'Karnataka', q: 'Karnataka' }
 ];
 
 async function fetchFromAPITube(category, query) {
