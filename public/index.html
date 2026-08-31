@@ -97,26 +97,29 @@
     display:flex; flex-direction:column; gap:20px;
   }
 
-  /* On wider screens, use the extra space with a multi-column grid instead
-     of leaving a narrow mobile-width column surrounded by empty space */
+  /* On wider screens, use the extra space with a masonry-style multi-column
+     layout — cards flow naturally into columns regardless of height, unlike
+     a strict grid which forces every row to match its tallest card (looks
+     gappy/uneven when mixing tall image cards with short text-only ones) */
   @media (min-width:860px){
     .feed{
       max-width:1000px;
-      display:grid;
-      grid-template-columns:repeat(2, 1fr);
-      align-items:start;
+      display:block;
+      column-count:2;
+      column-gap:20px;
+    }
+    .feed > .card,
+    .feed > .ad-slot,
+    .feed > .ad-unit-wrap{
+      break-inside:avoid;
+      margin-bottom:20px;
     }
   }
   @media (min-width:1280px){
     .feed{
       max-width:1400px;
-      grid-template-columns:repeat(3, 1fr);
+      column-count:3;
     }
-  }
-  /* Ad slots and empty/offline states should span the full row width rather
-     than sitting awkwardly in a single narrow grid cell */
-  .ad-slot, .ad-unit-wrap{
-    grid-column:1 / -1;
   }
 
   .search-wrap{ max-width:640px; margin:0 auto; padding:0 16px 8px; }
