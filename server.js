@@ -10,12 +10,17 @@ app.use(express.json());
 
 // ---- Push notifications setup ----
 // VAPID keys identify this server to push services (Chrome, Firefox, etc).
-// These were generated once with `webpush.generateVAPIDKeys()`. In a real
-// production deploy, move these to environment variables instead of hardcoding —
-// this is fine for local development and personal use.
-const VAPID_PUBLIC_KEY = 'BKyX8jBvmNSDWC91DfZ8aB_U3n_o-Zrxl8_EogxMSmERaSE5zVP3EYCd7c7BjGjwe4Jl-Fq_0DhslAwqBXd8a6Y';
-const VAPID_PRIVATE_KEY = 'M1f09IWeat33yrMy_T7vCLyfwtYHfprSy29dMVUh1gM';
-webpush.setVapidDetails('mailto:example@example.com', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+// Read from environment variables (set in Render's dashboard under
+// Environment) rather than hardcoding them here — keeps them out of your
+// public GitHub repo. Generate new ones anytime with:
+//   npx web-push generate-vapid-keys
+// Note: changing these invalidates any existing push subscriptions — anyone
+// already subscribed will need to tap "Notify" again after this change.
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || '';
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails('mailto:nammablr5@gmail.com', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+}
 
 // Subscriptions and "already notified" links are persisted to disk (simple JSON
 // files) so they survive server restarts — no database needed for this scale.
