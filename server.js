@@ -68,12 +68,15 @@ async function fetchFromAPITube(category, query) {
   const params = new URLSearchParams({
     query,
     'language.code': 'en',
-    per_page: '30',
+    per_page: '10',
     api_key: APITUBE_API_KEY
   });
   const url = `https://api.apitube.io/v1/news/everything?${params.toString()}`;
   const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
-  if (!res.ok) throw new Error(`APITube returned ${res.status} for "${category}"`);
+  if (!res.ok) {
+    const bodyText = await res.text().catch(() => '');
+    throw new Error(`APITube returned ${res.status} for "${category}": ${bodyText.slice(0, 200)}`);
+  }
   const data = await res.json();
   if (data.status !== 'ok') throw new Error(`APITube error: ${data.message || 'unknown'}`);
 
