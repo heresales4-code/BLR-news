@@ -22,15 +22,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0B0B10;
-    --surface:#1C1C29;
-    --text:#F5F5F7;
-    --muted:#9494A2;
-    --violet:#A78BFA;
-    --pink:#F472B6;
-    --orange:#FB923C;
-    --border:#26263252;
-    --border-solid:#38384E;
+    --bg:#F7F7FA;
+    --surface:#FFFFFF;
+    --text:#16161F;
+    --muted:#6B6B78;
+    --violet:#8B5CF6;
+    --pink:#EC4899;
+    --orange:#F97316;
+    --border:#E4E4EC80;
+    --border-solid:#E4E4EC;
     --radius:16px;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
@@ -44,29 +44,24 @@
   }
   header{
     position:sticky; top:0; z-index:20;
-    background:var(--bg);
-    padding:20px 18px 16px;
+    background:#0F172A;
+    padding:18px 24px;
     display:flex; align-items:center; justify-content:space-between;
-    border-bottom:1px solid var(--border-solid);
   }
   .wordmark{
     font-family:'Space Grotesk',sans-serif;
-    font-weight:800; font-size:23px; letter-spacing:-0.02em;
-    background:linear-gradient(90deg,#A78BFA,#F472B6 55%,#FB923C);
-    -webkit-background-clip:text; background-clip:text; color:transparent;
+    font-weight:800; font-size:22px; letter-spacing:-0.01em;
+    color:#fff;
   }
-  .wordmark .dot-suffix{color:var(--pink); -webkit-text-fill-color:var(--pink);}
+  .wordmark .dot-suffix{color:#FB923C;}
   .meta-time{
     font-family:'JetBrains Mono',monospace;
-    font-size:11px; color:var(--muted);
+    font-size:11px; color:rgba(255,255,255,0.65);
     text-align:right; line-height:1.4;
   }
-  .meta-time b{color:var(--text); display:block; font-size:12px;}
+  .meta-time b{color:#fff; display:block; font-size:12px;}
 
-  .glow-bar{
-    height:3px; width:100%;
-    background:linear-gradient(90deg,#A78BFA,#F472B6 50%,#FB923C);
-  }
+  .glow-bar{ display:none; }
 
   .chips{
     display:flex; gap:8px; overflow-x:auto;
@@ -88,43 +83,16 @@
   .chip.active{
     border-color:transparent;
     color:#fff;
-    background:linear-gradient(90deg,#A78BFA,#F472B6);
+    background:linear-gradient(90deg,#8B5CF6,#EC4899);
   }
 
   .feed{
-    max-width:640px; margin:0 auto;
+    max-width:720px; margin:0 auto;
     padding:16px;
     display:flex; flex-direction:column; gap:20px;
   }
 
-  /* On wider screens, use the extra space with a masonry-style multi-column
-     layout — cards flow naturally into columns regardless of height, unlike
-     a strict grid which forces every row to match its tallest card (looks
-     gappy/uneven when mixing tall image cards with short text-only ones) */
-  @media (min-width:860px){
-    .feed{
-      max-width:1000px;
-      display:block;
-      column-count:2;
-      column-gap:20px;
-    }
-    .feed > .card,
-    .feed > .ad-slot,
-    .feed > .ad-unit-wrap{
-      break-inside:avoid;
-      margin-bottom:20px;
-    }
-  }
-  @media (min-width:1280px){
-    .feed{
-      max-width:1400px;
-      column-count:3;
-    }
-  }
-
-  .search-wrap{ max-width:640px; margin:0 auto; padding:0 16px 8px; }
-  @media (min-width:860px){ .search-wrap{ max-width:1000px; } }
-  @media (min-width:1280px){ .search-wrap{ max-width:1400px; } }
+  .search-wrap{ max-width:720px; margin:0 auto; padding:0 16px 8px; }
   .search-input{
     width:100%; padding:11px 16px; border-radius:10px;
     border:1px solid var(--border-solid); background:var(--surface);
@@ -135,23 +103,31 @@
   .search-input:focus{ border-color:var(--violet); }
 
   .card{
+    position:relative;
     background:var(--surface);
     border:1px solid var(--border-solid);
     border-radius:var(--radius);
     overflow:hidden;
-    box-shadow:0 4px 16px rgba(0,0,0,0.4);
+    box-shadow:0 2px 12px rgba(16,16,40,0.07);
+  }
+  .card-image-badge{
+    position:absolute; top:14px; left:14px; z-index:2;
+    background:#0F172A; color:#fff;
+    font-family:'JetBrains Mono',monospace; font-weight:700;
+    font-size:10px; letter-spacing:0.06em; text-transform:uppercase;
+    padding:5px 11px; border-radius:6px;
   }
   .card-image{
     width:100%; aspect-ratio:16/9; object-fit:cover;
-    display:block; background:#1E1E2A;
+    display:block; background:#F0F0F5;
   }
   .card-body{ padding:20px; }
   .eyebrow{
-    display:flex; align-items:center; gap:8px;
-    font-family:'JetBrains Mono',monospace;
+    display:inline-flex; align-items:center;
+    font-family:'JetBrains Mono',monospace; font-weight:600;
     font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em;
-    color:var(--muted);
-    margin-bottom:10px;
+    padding:4px 10px; border-radius:999px;
+    margin-bottom:12px;
   }
   .dot{width:7px; height:7px; border-radius:50%; flex:0 0 auto; box-shadow:0 0 8px currentColor;}
   h2{
@@ -161,7 +137,7 @@
     color:var(--text);
   }
   p.summary{
-    font-size:14.5px; line-height:1.55; color:#B4B4C2;
+    font-size:14.5px; line-height:1.55; color:#4B4B58;
     margin-bottom:14px;
   }
   .card-footer{
@@ -186,13 +162,13 @@
 
   /* Ad slot */
   .ad-slot{
-    border:1.5px dashed #3A2E4A;
+    border:1.5px dashed #D9CCEC;
     border-radius:var(--radius);
     padding:22px 18px;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:6px;
-    background:#17141F;
-    color:#7A7488;
+    background:#FAF7FE;
+    color:#8A7FA0;
     text-align:center;
     min-height:100px;
   }
@@ -202,7 +178,7 @@
     color:var(--violet);
   }
   .ad-slot .ad-sub{
-    font-size:12px; color:#6E6880;
+    font-size:12px; color:#9B8FB0;
   }
   .ad-unit-wrap{
     border-radius:var(--radius); overflow:hidden;
@@ -231,13 +207,117 @@
   }
 
   .footer-links{
-    max-width:640px; margin:8px auto 0; padding:0 16px;
+    max-width:720px; margin:8px auto 0; padding:0 16px;
     text-align:center; font-size:12px; color:var(--muted);
   }
-  @media (min-width:860px){ .footer-links{ max-width:1000px; } }
-  @media (min-width:1280px){ .footer-links{ max-width:1400px; } }
   .footer-links a{ color:var(--muted); text-decoration:none; }
   .footer-links a:hover{ color:var(--pink); }
+
+  /* ---- Desktop 3-column layout ---- */
+  .app-shell{ display:block; }
+  .sidebar{ display:none; }
+
+  @media (min-width:1000px){
+    .app-shell{
+      display:grid;
+      grid-template-columns:250px 1fr 300px;
+      gap:24px;
+      max-width:1360px; margin:0 auto;
+      padding:24px;
+      align-items:start;
+    }
+    .sidebar{ display:flex; flex-direction:column; gap:20px; position:sticky; top:88px; }
+    .main-column .chips{ display:none; } /* sidebar nav replaces chip filters on desktop */
+    .main-column .search-wrap, .main-column .feed, .main-column .footer-links{ max-width:none; padding-left:0; padding-right:0; }
+    nav.bottom{ display:none; } /* sidebar nav replaces bottom tab bar on desktop */
+    body{ padding-bottom:0; }
+  }
+
+  .sidebar-card{
+    background:var(--surface); border:1px solid var(--border-solid);
+    border-radius:14px; padding:18px;
+    box-shadow:0 2px 12px rgba(16,16,40,0.06);
+  }
+  .sidebar-title{
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px;
+    margin-bottom:12px; color:var(--text);
+  }
+  .sidebar-nav-item{
+    display:block; width:100%; text-align:left;
+    background:none; border:none; cursor:pointer;
+    font-family:'Inter',sans-serif; font-weight:600; font-size:14px;
+    color:var(--text); padding:10px 12px; border-radius:10px;
+    margin-bottom:2px;
+  }
+  .sidebar-nav-item:hover{ background:#F3F0FA; }
+  .sidebar-nav-item.active{ background:#0F172A; color:#fff; }
+
+  .weather-widget .weather-label{
+    font-family:'JetBrains Mono',monospace; font-weight:600; font-size:10.5px;
+    letter-spacing:0.06em; color:var(--orange); margin-bottom:8px;
+  }
+  .weather-widget .weather-temp{
+    font-family:'Space Grotesk',sans-serif; font-weight:800; font-size:32px; color:var(--text);
+  }
+  .weather-widget .weather-desc{ font-size:13px; color:var(--muted); margin-top:4px; }
+
+  .sidebar-widget-title{
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px;
+    margin-bottom:14px; color:var(--text);
+  }
+  .trending-item{
+    padding:10px 0; border-bottom:1px solid var(--border-solid);
+  }
+  .trending-item:last-child{ border-bottom:none; }
+  .trending-item .trending-rank{
+    font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--muted);
+    text-transform:uppercase; margin-bottom:4px;
+  }
+  .trending-item .trending-headline{
+    font-size:13.5px; font-weight:600; color:var(--text); line-height:1.4;
+    text-decoration:none; display:block;
+  }
+  .trending-item .trending-headline:hover{ color:var(--violet); }
+
+  .newsletter-widget p{ font-size:13px; color:var(--muted); margin-bottom:14px; line-height:1.5; }
+  .newsletter-widget input{
+    width:100%; padding:11px 14px; border-radius:10px;
+    border:1px solid var(--border-solid); font-family:'Inter',sans-serif; font-size:13.5px;
+    margin-bottom:10px; box-sizing:border-box;
+  }
+  .newsletter-widget button{
+    width:100%; padding:11px; border-radius:10px; border:none;
+    background:#0F172A; color:#fff; font-weight:700; font-size:13.5px;
+    cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .newsletter-widget button:disabled{ opacity:0.6; cursor:default; }
+  .newsletter-msg{ font-size:12.5px; margin-top:10px; }
+  .newsletter-msg.success{ color:#059669; }
+  .newsletter-msg.error{ color:#E11D48; }
+
+  /* ---- Featured hero story (desktop only) ---- */
+  .featured-card{
+    display:none;
+  }
+  @media (min-width:1000px){
+    .featured-card.has-story{
+      display:block;
+      background:var(--surface); border-left:5px solid var(--orange);
+      border-radius:14px; padding:22px 24px; margin-bottom:20px;
+      box-shadow:0 2px 12px rgba(16,16,40,0.06);
+    }
+  }
+  .featured-badge{
+    display:inline-flex; align-items:center; gap:6px;
+    background:#FFF1E6; color:var(--orange); font-weight:700;
+    font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.05em;
+    padding:5px 12px; border-radius:999px; margin-bottom:12px;
+  }
+  .featured-badge::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--orange); }
+  .featured-card h2{ font-size:24px; margin-bottom:10px; }
+  .featured-card .featured-link{
+    color:var(--violet); font-weight:700; font-size:13.5px; text-decoration:none;
+  }
 </style>
 </head>
 <body>
@@ -251,23 +331,64 @@
   </header>
   <div class="glow-bar"></div>
 
-  <div class="chips">
-    <div class="chip active">All</div>
-    <div class="chip">Traffic</div>
-    <div class="chip">Civic</div>
-    <div class="chip">Tech</div>
-    <div class="chip">Metro</div>
-    <div class="chip">Karnataka</div>
-  </div>
+  <div class="app-shell">
+    <aside class="sidebar sidebar-left">
+      <div class="sidebar-card">
+        <div class="sidebar-title">BLR. Sections</div>
+        <nav id="sidebarNav">
+          <button class="sidebar-nav-item active" data-cat="All">All Stories</button>
+          <button class="sidebar-nav-item" data-cat="Traffic">Traffic</button>
+          <button class="sidebar-nav-item" data-cat="Civic">Civic</button>
+          <button class="sidebar-nav-item" data-cat="Tech">Tech</button>
+          <button class="sidebar-nav-item" data-cat="Metro">Metro</button>
+          <button class="sidebar-nav-item" data-cat="Karnataka">Karnataka</button>
+        </nav>
+      </div>
+      <div class="sidebar-card weather-widget">
+        <div class="weather-label">LOCAL WEATHER</div>
+        <div class="weather-temp" id="weatherTemp">--°</div>
+        <div class="weather-desc" id="weatherDesc">Loading forecast…</div>
+      </div>
+    </aside>
 
-  <div class="search-wrap">
-    <input type="text" id="searchInput" class="search-input" placeholder="Search stories…" autocomplete="off">
-  </div>
+    <div class="main-column">
+      <div class="chips">
+        <div class="chip active">All</div>
+        <div class="chip">Traffic</div>
+        <div class="chip">Civic</div>
+        <div class="chip">Tech</div>
+        <div class="chip">Metro</div>
+        <div class="chip">Karnataka</div>
+      </div>
 
-  <main class="feed" id="feed"></main>
+      <div class="search-wrap">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search stories…" autocomplete="off">
+      </div>
 
-  <div class="footer-links">
-    <a href="/privacy.html">Privacy Policy</a>
+      <div class="featured-card" id="featuredCard"></div>
+
+      <main class="feed" id="feed"></main>
+
+      <div class="footer-links">
+        <a href="/privacy.html">Privacy Policy</a>
+      </div>
+    </div>
+
+    <aside class="sidebar sidebar-right">
+      <div class="sidebar-card trending-widget">
+        <div class="sidebar-widget-title">📈 Top Stories Right Now</div>
+        <div id="trendingList"></div>
+      </div>
+      <div class="sidebar-card newsletter-widget">
+        <div class="sidebar-widget-title">Get the Daily Pulse</div>
+        <p>Top Bangalore stories delivered to your inbox every morning.</p>
+        <form id="newsletterForm">
+          <input type="email" id="newsletterEmail" placeholder="Your email address" required>
+          <button type="submit" id="newsletterBtn">Subscribe</button>
+        </form>
+        <div class="newsletter-msg" id="newsletterMsg"></div>
+      </div>
+    </aside>
   </div>
 
   <nav class="bottom">
@@ -302,11 +423,11 @@
 
   // ---- Mock content (swap for RSS/API feed later) ----
   const CATS = {
-    Traffic: '#FB7185',
-    Civic: '#34D399',
-    Tech: '#818CF8',
-    Metro: '#FBBF24',
-    Karnataka: '#C084FC'
+    Traffic: '#E11D48',
+    Civic: '#059669',
+    Tech: '#4F46E5',
+    Metro: '#D97706',
+    Karnataka: '#9333EA'
   };
 
   // Fallback mock data — used only if the /api/news backend isn't reachable
@@ -421,42 +542,71 @@
 
   function emptyState(){
     if (currentMode === 'saved') {
-      return `<div class="ad-slot" style="border-color:#4A3A5A;">
+      return `<div class="ad-slot" style="border-color:#D9CCEC;">
         <div class="ad-label">No saved stories yet</div>
         <div class="ad-sub">Tap the bookmark icon on any story to save it here</div>
       </div>`;
     }
-    return `<div class="ad-slot" style="border-color:#4A3A5A;">
+    return `<div class="ad-slot" style="border-color:#D9CCEC;">
       <div class="ad-label">No stories match</div>
       <div class="ad-sub">Try a different category or search term</div>
     </div>`;
   }
 
+  const isDesktopLayout = () => window.matchMedia('(min-width: 1000px)').matches;
+
+  function renderFeaturedCard(story){
+    const featuredEl = document.getElementById('featuredCard');
+    if (!story || currentMode !== 'home' || !isDesktopLayout()) {
+      featuredEl.classList.remove('has-story');
+      featuredEl.innerHTML = '';
+      return;
+    }
+    featuredEl.classList.add('has-story');
+    featuredEl.innerHTML = `
+      <div class="featured-badge">Latest</div>
+      <h2>${story.headline}</h2>
+      ${story.summary ? `<p class="summary" style="margin-bottom:14px;">${story.summary}</p>` : ''}
+      <a class="featured-link" href="${story.link || '#'}" target="_blank" rel="noopener">Read Full Story →</a>
+    `;
+  }
+
   function renderStories(stories, opts = {}){
     feed.innerHTML = '';
+
+    // On desktop, the newest story gets pulled into the featured hero slot
+    // above the feed instead of appearing twice (there and in the grid) —
+    // only for the general "All" view, so filtering to a category with just
+    // one story never leaves the grid looking empty
+    let gridStories = stories;
+    if (currentMode === 'home' && currentCategory === 'All' && isDesktopLayout() && stories.length) {
+      renderFeaturedCard(stories[0]);
+      gridStories = stories.slice(1);
+    } else {
+      renderFeaturedCard(null);
+    }
 
     if (opts.banner) {
       feed.insertAdjacentHTML('beforeend', opts.banner);
     }
 
-    if (!stories.length) {
+    if (!gridStories.length) {
       feed.insertAdjacentHTML('beforeend', emptyState());
       return;
     }
 
-    stories.forEach((s, i) => {
+    gridStories.forEach((s, i) => {
       const color = CATS[s.cat] || '#8A8370';
       const id = storyId(s);
       const saved = isSaved(id);
       const imageBlock = s.image
-        ? `<img class="card-image" src="${s.image}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`
+        ? `<div style="position:relative;"><img class="card-image" src="${s.image}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentElement.remove()"><div class="card-image-badge">${s.cat}</div></div>`
         : '';
       feed.insertAdjacentHTML('beforeend', `
-        <article class="card">
+        <article class="card" style="border-left:4px solid ${color};">
           ${imageBlock}
           <div class="card-body">
-            <div class="eyebrow">
-              <span class="dot" style="background:${color}"></span>
+            <div class="eyebrow" style="background:${color}22; color:${color};">
               ${s.cat}
             </div>
             <h2>${s.headline}</h2>
@@ -473,7 +623,7 @@
           </div>
         </article>
       `);
-      if (currentMode === 'home' && (i + 1) % 4 === 0 && i !== stories.length - 1) {
+      if (currentMode === 'home' && (i + 1) % 4 === 0 && i !== gridStories.length - 1) {
         feed.insertAdjacentHTML('beforeend', adSlot('320×100'));
       }
     });
@@ -485,7 +635,7 @@
     // Wire up bookmark buttons for the cards just rendered
     feed.querySelectorAll('.bookmark-btn').forEach(btn => {
       btn.onclick = () => {
-        const story = stories.find(s => storyId(s) === btn.dataset.id);
+        const story = gridStories.find(s => storyId(s) === btn.dataset.id);
         if (story) toggleSaved(story);
       };
     });
@@ -497,15 +647,23 @@
     renderStories(computeVisibleStories());
   }
 
-  // ---- Category chips ----
+  // ---- Category chips + sidebar nav (kept in sync with each other) ----
+  function setCategory(cat){
+    currentCategory = cat;
+    document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.textContent.trim() === cat));
+    document.querySelectorAll('.sidebar-nav-item').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+    refresh();
+  }
   document.querySelectorAll('.chip').forEach(chip => {
-    chip.onclick = () => {
-      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-      currentCategory = chip.textContent.trim();
-      refresh();
-    };
+    chip.onclick = () => setCategory(chip.textContent.trim());
   });
+  document.querySelectorAll('.sidebar-nav-item').forEach(btn => {
+    btn.onclick = () => setCategory(btn.dataset.cat);
+  });
+
+  // Re-render when crossing the desktop breakpoint, so the featured hero
+  // slot appears/disappears correctly on live window resizing
+  window.matchMedia('(min-width: 1000px)').addEventListener('change', refresh);
 
   // ---- Search ----
   const searchInput = document.getElementById('searchInput');
@@ -536,15 +694,17 @@
       if (!data.stories || !data.stories.length) throw new Error('empty');
       allStories = data.stories;
       refresh();
+      renderTrending(allStories);
     } catch (err) {
       // Backend not running / not deployed yet — show fallback data with a subtle notice
       allStories = FALLBACK_STORIES;
       renderStories(computeVisibleStories(), {
-        banner: `<div class="ad-slot" style="border-color:#4A3A5A;">
+        banner: `<div class="ad-slot" style="border-color:#D9CCEC;">
           <div class="ad-label">Offline preview</div>
           <div class="ad-sub">Showing sample stories — run \`node server.js\` to load live news</div>
         </div>`
       });
+      renderTrending(allStories);
     }
   }
 
@@ -623,6 +783,91 @@
   initPushUI();
 
   loadNews();
+
+  // ---- Weather widget (Open-Meteo — free, no API key required) ----
+  const WEATHER_CODES = {
+    0:'Clear sky', 1:'Mostly clear', 2:'Partly cloudy', 3:'Overcast',
+    45:'Foggy', 48:'Foggy',
+    51:'Light drizzle', 53:'Drizzle', 55:'Heavy drizzle',
+    61:'Light rain', 63:'Rain', 65:'Heavy rain',
+    80:'Rain showers', 81:'Rain showers', 82:'Heavy showers',
+    95:'Thunderstorm', 96:'Thunderstorm', 99:'Thunderstorm'
+  };
+  async function loadWeather(){
+    const tempEl = document.getElementById('weatherTemp');
+    const descEl = document.getElementById('weatherDesc');
+    if (!tempEl) return;
+    try {
+      const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=12.9716&longitude=77.5946&current=temperature_2m,weather_code&timezone=Asia%2FKolkata');
+      const data = await res.json();
+      const temp = Math.round(data.current.temperature_2m);
+      const desc = WEATHER_CODES[data.current.weather_code] || 'Bengaluru weather';
+      tempEl.textContent = `${temp}°C`;
+      descEl.textContent = desc;
+    } catch (err) {
+      descEl.textContent = 'Weather unavailable right now';
+    }
+  }
+  loadWeather();
+
+  // ---- Trending sidebar: top story per category, a simple honest heuristic
+  // (not real engagement-based trending — just "one highlight from each beat") ----
+  function renderTrending(stories){
+    const list = document.getElementById('trendingList');
+    if (!list) return;
+    const seen = new Set();
+    const picks = [];
+    for (const s of stories) {
+      if (!seen.has(s.cat)) {
+        seen.add(s.cat);
+        picks.push(s);
+      }
+      if (picks.length >= 4) break;
+    }
+    list.innerHTML = picks.map(s => `
+      <div class="trending-item">
+        <div class="trending-rank">${s.cat}</div>
+        <a class="trending-headline" href="${s.link || '#'}" target="_blank" rel="noopener">${s.headline}</a>
+      </div>
+    `).join('');
+  }
+
+  // ---- Newsletter signup ----
+  const newsletterForm = document.getElementById('newsletterForm');
+  if (newsletterForm) {
+    newsletterForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const emailInput = document.getElementById('newsletterEmail');
+      const btn = document.getElementById('newsletterBtn');
+      const msg = document.getElementById('newsletterMsg');
+      btn.disabled = true;
+      btn.textContent = 'Subscribing…';
+      msg.textContent = '';
+      msg.className = 'newsletter-msg';
+      try {
+        const res = await fetch('/api/newsletter/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailInput.value })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          msg.textContent = "You're subscribed!";
+          msg.className = 'newsletter-msg success';
+          emailInput.value = '';
+        } else {
+          msg.textContent = data.error || 'Something went wrong';
+          msg.className = 'newsletter-msg error';
+        }
+      } catch (err) {
+        msg.textContent = 'Network error — try again';
+        msg.className = 'newsletter-msg error';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Subscribe';
+      }
+    });
+  }
 </script>
 </body>
 </html>

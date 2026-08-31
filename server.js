@@ -534,6 +534,21 @@ app.post('/api/unsubscribe', (req, res) => {
   res.json({ success: true });
 });
 
+// ---- Newsletter signup (stores emails only — no sending built yet) ----
+const NEWSLETTER_FILE = path.join(__dirname, 'newsletter-emails.json');
+let newsletterEmails = new Set(loadJSON(NEWSLETTER_FILE, []));
+
+app.post('/api/newsletter/subscribe', (req, res) => {
+  const email = (req.body?.email || '').trim().toLowerCase();
+  const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if (!validEmail) {
+    return res.status(400).json({ error: 'Please enter a valid email address' });
+  }
+  newsletterEmails.add(email);
+  saveJSON(NEWSLETTER_FILE, [...newsletterEmails]);
+  res.json({ success: true });
+});
+
 // Poll feeds in the background so notifications can fire even when nobody
 // currently has the page open (as long as the server is running). Interval
 // matches the cache TTL above — hourly when NewsData.io is enabled to respect
