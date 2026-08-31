@@ -23,14 +23,14 @@
 <style>
   :root{
     --bg:#0B0B10;
-    --surface:#16161F;
+    --surface:#1C1C29;
     --text:#F5F5F7;
-    --muted:#8B8B99;
+    --muted:#9494A2;
     --violet:#A78BFA;
     --pink:#F472B6;
     --orange:#FB923C;
     --border:#26263252;
-    --border-solid:#26263A;
+    --border-solid:#38384E;
     --radius:16px;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
@@ -94,10 +94,34 @@
   .feed{
     max-width:640px; margin:0 auto;
     padding:16px;
-    display:flex; flex-direction:column; gap:14px;
+    display:flex; flex-direction:column; gap:20px;
+  }
+
+  /* On wider screens, use the extra space with a multi-column grid instead
+     of leaving a narrow mobile-width column surrounded by empty space */
+  @media (min-width:860px){
+    .feed{
+      max-width:1000px;
+      display:grid;
+      grid-template-columns:repeat(2, 1fr);
+      align-items:start;
+    }
+  }
+  @media (min-width:1280px){
+    .feed{
+      max-width:1400px;
+      grid-template-columns:repeat(3, 1fr);
+    }
+  }
+  /* Ad slots and empty/offline states should span the full row width rather
+     than sitting awkwardly in a single narrow grid cell */
+  .ad-slot, .ad-unit-wrap{
+    grid-column:1 / -1;
   }
 
   .search-wrap{ max-width:640px; margin:0 auto; padding:0 16px 8px; }
+  @media (min-width:860px){ .search-wrap{ max-width:1000px; } }
+  @media (min-width:1280px){ .search-wrap{ max-width:1400px; } }
   .search-input{
     width:100%; padding:11px 16px; border-radius:10px;
     border:1px solid var(--border-solid); background:var(--surface);
@@ -112,6 +136,7 @@
     border:1px solid var(--border-solid);
     border-radius:var(--radius);
     overflow:hidden;
+    box-shadow:0 4px 16px rgba(0,0,0,0.4);
   }
   .card-image{
     width:100%; aspect-ratio:16/9; object-fit:cover;
@@ -206,6 +231,8 @@
     max-width:640px; margin:8px auto 0; padding:0 16px;
     text-align:center; font-size:12px; color:var(--muted);
   }
+  @media (min-width:860px){ .footer-links{ max-width:1000px; } }
+  @media (min-width:1280px){ .footer-links{ max-width:1400px; } }
   .footer-links a{ color:var(--muted); text-decoration:none; }
   .footer-links a:hover{ color:var(--pink); }
 </style>
