@@ -56,11 +56,11 @@ const APITUBE_API_KEY = process.env.APITUBE_API_KEY || '';
 const APITUBE_ENABLED = !!APITUBE_API_KEY;
 
 const APITUBE_QUERIES = [
-  { category: 'Traffic', q: '"Bangalore traffic" OR "Bengaluru traffic" OR "BBMP road" OR "Silk Board" OR flyover' },
-  { category: 'Metro', q: '"Namma Metro" OR "Bengaluru Metro" OR "Bangalore Metro" OR BMRCL' },
-  { category: 'Tech', q: '"Bangalore startup" OR "Bengaluru startup" OR "Bangalore tech" OR Whitefield' },
-  { category: 'Civic', q: 'BBMP OR "Bengaluru civic" OR "Bangalore civic"' },
-  { category: 'Civic', q: '"Bangalore weather" OR "Bengaluru weather" OR rain OR monsoon' },
+  { category: 'Traffic', q: 'traffic OR flyover OR "BBMP road" OR "Silk Board" OR "Outer Ring Road" OR underpass OR congestion OR "traffic police"' },
+  { category: 'Metro', q: 'metro OR BMRCL OR "Namma Metro" OR "Yellow Line" OR "Purple Line" OR "Green Line"' },
+  { category: 'Tech', q: 'startup OR tech OR IT OR Whitefield OR "Electronic City" OR layoffs OR funding' },
+  { category: 'Civic', q: 'BBMP OR civic OR pothole OR garbage OR "water supply" OR encroachment' },
+  { category: 'Civic', q: 'weather OR rain OR monsoon OR flood OR forecast' },
   { category: 'Karnataka', q: 'Karnataka' }
 ];
 
@@ -68,7 +68,7 @@ async function fetchFromAPITube(category, query) {
   const params = new URLSearchParams({
     query,
     'language.code': 'en',
-    per_page: '10',
+    per_page: '30',
     api_key: APITUBE_API_KEY
   });
   const url = `https://api.apitube.io/v1/news/everything?${params.toString()}`;
