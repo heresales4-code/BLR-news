@@ -373,6 +373,15 @@
         <input type="text" id="searchInput" class="search-input" placeholder="Search stories…" autocomplete="off">
       </div>
 
+      <!-- Real ad unit (Adsterra Native Banner) — placed as static HTML rather
+           than inside the dynamically-updated feed area, since browsers block
+           <script> tags from executing when inserted via innerHTML/JS, and
+           this ad is tied to one fixed container ID meant to appear once. -->
+      <div class="ad-unit-wrap" style="margin-bottom:20px;">
+        <script async="async" data-cfasync="false" src="https://pl31211163.profitableratecpmnetwork.com/77381325c854ea93ccaf680479378180/invoke.js"></script>
+        <div id="container-77381325c854ea93ccaf680479378180"></div>
+      </div>
+
       <div class="featured-card" id="featuredCard"></div>
 
       <main class="feed" id="feed"></main>
