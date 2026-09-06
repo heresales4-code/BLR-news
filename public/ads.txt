@@ -1,7 +1,1 @@
-# AdSense requires this file to be served at your domain's root (e.g.
-# https://yourdomain.com/ads.txt) to verify you're authorized to show ads
-# for your account. Replace pub-0000000000000000 below with your real
-# AdSense publisher ID (find it in your AdSense dashboard, format:
-# ca-pub-XXXXXXXXXXXXXXXX — use only the numeric part after "ca-pub-").
-#
-# google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
+google.com, pub-5470065566779943, DIRECT, f08c47fec0942fa0

@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>BLR. — Bangalore, in short</title>
 
+<!-- AdSense site-ownership verification tag (from Google's dashboard).
+     Kept here permanently, separate from the ad-unit rendering logic below,
+     since verification needs this script present regardless of whether
+     ADSENSE_SLOT_ID has been filled in yet. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5470065566779943" crossorigin="anonymous"></script>
+
 <!--
   ADSENSE CONFIG
   Once your AdSense account is approved:
@@ -496,23 +502,18 @@
   }
 
   // ---- AdSense config ----
-  // Fill these in once your AdSense account is approved (see the comment at
-  // the top of this file). Leave blank to keep showing the dev placeholder.
-  const ADSENSE_CLIENT_ID = ''; // e.g. 'ca-pub-1234567890123456'
-  const ADSENSE_SLOT_ID = '';   // e.g. '9876543210'
+  // Client ID is filled in (it doesn't change once your account is
+  // approved). ADSENSE_SLOT_ID stays blank until you create your first ad
+  // unit in the AdSense dashboard — the placeholder stays showing until then.
+  const ADSENSE_CLIENT_ID = 'ca-pub-5470065566779943';
+  const ADSENSE_SLOT_ID = '';   // e.g. '9876543210' — fill in once you create an ad unit
   const ADSENSE_ENABLED = !!(ADSENSE_CLIENT_ID && ADSENSE_SLOT_ID);
 
   let adUnitCounter = 0;
-
-  // Load the AdSense script once, only if configured — avoids a failed
-  // network request cluttering the console during local development.
-  if (ADSENSE_ENABLED) {
-    const script = document.createElement('script');
-    script.async = true;
-    script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`;
-    script.crossOrigin = 'anonymous';
-    document.head.appendChild(script);
-  }
+  // Note: the adsbygoogle.js script itself now loads via a static tag in
+  // <head> (needed for AdSense's site-ownership verification), so no
+  // separate dynamic script-loading here — this just handles rendering
+  // individual ad units once a slot ID is configured.
 
   function adSlot(size){
     if (!ADSENSE_ENABLED) {
