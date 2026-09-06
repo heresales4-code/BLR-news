@@ -232,7 +232,7 @@ async function checkForNewStoriesAndNotify(stories) {
 
   for (const story of toNotify) {
     const payload = JSON.stringify({
-      title: `${story.cat} · BLR News`,
+      title: `${story.cat} · NammaBLR`,
       body: story.headline,
       url: story.link
     });
@@ -474,6 +474,6 @@ setInterval(async () => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`BLR News backend running at http://localhost:${PORT}`);
+  console.log(`NammaBLR backend running at http://localhost:${PORT}`);
   console.log(`News API: http://localhost:${PORT}/api/news`);
 });

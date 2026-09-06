@@ -1,9 +1,9 @@
-// Service worker for BLR News push notifications.
+// Service worker for NammaBLR push notifications.
 // This runs separately from the page — it can receive pushes even if the
 // browser tab isn't open, as long as the browser itself is running.
 
 self.addEventListener('push', (event) => {
-  let data = { title: 'BLR News', body: 'New story available', url: '/' };
+  let data = { title: 'NammaBLR', body: 'New story available', url: '/' };
   try { data = event.data.json(); } catch (e) { /* fall back to default above */ }
 
   event.waitUntil(

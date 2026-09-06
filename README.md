@@ -1,4 +1,4 @@
-# BLR. — Bangalore News App
+# NammaBLR — Bangalore News App
 
 ## Run it locally
 1. `npm install`
