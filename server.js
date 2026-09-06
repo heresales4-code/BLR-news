@@ -61,7 +61,8 @@ const APITUBE_QUERIES = [
   { category: 'Tech', q: '"Bangalore startup" OR "Bengaluru startup" OR "Bangalore tech" OR Whitefield' },
   { category: 'Civic', q: 'BBMP OR "Bengaluru civic" OR "Bangalore civic" OR "Karnataka civic" OR "Karnataka government"' },
   { category: 'Civic', q: '"Bangalore weather" OR "Bengaluru weather" OR "Karnataka weather" OR "Karnataka rain" OR monsoon' },
-  { category: 'Karnataka', q: 'Karnataka' }
+  { category: 'Karnataka', q: 'Karnataka' },
+  { category: 'Sports', q: 'cricket OR IPL OR "Team India" OR football OR Olympics OR badminton OR hockey OR tennis OR "World Cup"' }
 ];
 
 async function fetchFromAPITube(category, query) {
@@ -370,8 +371,10 @@ async function fetchAllFeeds() {
   });
 
   // Drop stories that don't actually mention Bangalore/Karnataka anywhere —
-  // see isKarnatakaRelevant for why this is needed.
-  const relevant = deduped.filter(s => isKarnatakaRelevant(s) && !isClickbait(s));
+  // see isKarnatakaRelevant for why this is needed. Sports is a deliberate
+  // exception: it's meant to cover national/international sports broadly,
+  // not just Karnataka-connected sports news.
+  const relevant = deduped.filter(s => (s.cat === 'Sports' || isKarnatakaRelevant(s)) && !isClickbait(s));
 
   // Drop anything older than a week so the feed actually feels like "latest
   // news" instead of a mixed timeline going back months.
