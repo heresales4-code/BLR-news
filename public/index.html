@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NammaBLR — Bangalore, in short</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 
 <!-- AdSense site-ownership verification tag (from Google's dashboard).
      Kept here permanently, separate from the ad-unit rendering logic below,
@@ -54,12 +58,18 @@
     padding:18px 24px;
     display:flex; align-items:center; justify-content:space-between;
   }
-  .wordmark{
-    font-family:'Space Grotesk',sans-serif;
-    font-weight:800; font-size:22px; letter-spacing:-0.01em;
-    color:#fff;
+  .logo-badge{
+    background:#fff;
+    border-radius:10px;
+    padding:6px 12px;
+    display:inline-flex;
+    align-items:center;
   }
-  .wordmark .dot-suffix{color:#FB923C;}
+  .logo-img{
+    height:28px;
+    width:auto;
+    display:block;
+  }
   .meta-time{
     font-family:'JetBrains Mono',monospace;
     font-size:11px; color:rgba(255,255,255,0.65);
@@ -329,7 +339,7 @@
 <body>
 
   <header>
-    <div class="wordmark">Namma<span class="dot-suffix">BLR</span></div>
+    <div class="logo-badge"><img src="/logo-transparent.png" alt="NammaBLR" class="logo-img"></div>
     <div class="meta-time">
       <b id="clock">--:--</b>
       <span id="dateline">Bengaluru</span>
