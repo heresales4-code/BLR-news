@@ -108,10 +108,41 @@ const cache = new NodeCache({ stdTTL: 900 });
 app.use(cors());
 app.use(express.static('public'));
 
-// Trim a description down to roughly N words, stripping any HTML tags the feed included
-function trimSummary(text, wordLimit = 60) {
+// Some sources' description field contains site boilerplate instead of an
+// actual article summary — News18's "Rapid Read" AI-summary teaser text,
+// generic "Last Updated" metadata, or site navigation menus that leaked in
+// (e.g. "Skip to content +91-..."). Strip these out; if nothing substantive
+// is left, return empty so the card just shows the headline instead of
+// confusing junk text.
+const JUNK_PATTERNS = [
+  /^News agency-feeds\s*/i,
+  /Last Updated:\s*[A-Za-z]+ \d{1,2},?\s*\d{4},?\s*\d{1,2}:\d{2}\s*IST/i,
+  /Rapid Read\.?\s*Summarized by AI\.?/i,
+  /\+?\s*Got Question about the\.?/i,
+  /Skip to content/i,
+  /\+91[-\s]?\d{6,10}/g, // Indian phone numbers that leak in from site headers
+];
+
+function trimSummary(text, wordLimit = 80) {
   if (!text) return '';
-  const plain = text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  let plain = text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+
+  JUNK_PATTERNS.forEach((pattern) => {
+    plain = plain.replace(pattern, ' ');
+  });
+  plain = plain.replace(/\s+/g, ' ').trim();
+
+  // If cleanup stripped most of it away, there's nothing worth showing —
+  // a headline-only card is more honest than a fragment of junk text.
+  if (plain.length < 20) return '';
+
+  // Promotional/marketing copy that leaked in from a business listing page
+  // rather than an actual news article tends to over-use exclamation marks
+  // and phrases like "REFER & WIN" — real news descriptions don't write
+  // like this, so treat it as junk too.
+  const exclamationCount = (plain.match(/!/g) || []).length;
+  if (exclamationCount >= 2) return '';
+
   const words = plain.split(' ');
   if (words.length <= wordLimit) return plain;
   return words.slice(0, wordLimit).join(' ') + '…';
