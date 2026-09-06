@@ -59,8 +59,7 @@ const APITUBE_QUERIES = [
   { category: 'Traffic', q: '"Bangalore traffic" OR "Bengaluru traffic" OR "Karnataka traffic" OR "Karnataka roads" OR "BBMP road" OR "Silk Board" OR flyover' },
   { category: 'Metro', q: '"Namma Metro" OR "Bengaluru Metro" OR "Bangalore Metro" OR BMRCL' },
   { category: 'Tech', q: '"Bangalore startup" OR "Bengaluru startup" OR "Bangalore tech" OR Whitefield' },
-  { category: 'Civic', q: 'BBMP OR "Bengaluru civic" OR "Bangalore civic" OR "Karnataka civic" OR "Karnataka government"' },
-  { category: 'Civic', q: '"Bangalore weather" OR "Bengaluru weather" OR "Karnataka weather" OR "Karnataka rain" OR monsoon' },
+  { category: 'Civic', q: 'BBMP OR "Bengaluru civic" OR "Bangalore civic" OR "Karnataka civic" OR "Karnataka government" OR "Bangalore weather" OR "Bengaluru weather" OR "Karnataka weather" OR monsoon' },
   { category: 'Karnataka', q: 'Karnataka' },
   { category: 'Sports', q: 'cricket OR IPL OR BCCI OR "Team India" OR "Indian cricket" OR "Indian football" OR "Indian hockey" OR "Indian Olympic" OR "Indian athlete"' }
 ];
@@ -104,7 +103,11 @@ function upgradeToHttps(url) {
 // Cache TTL: APITube's free tier is real-time and generous (1,000 req/day),
 // so we can poll far more often than we could with NewsData.io's 200/day —
 // every 15 minutes uses only ~576/day across 6 categories.
-const cache = new NodeCache({ stdTTL: 900 });
+// Cache TTL: matches BACKGROUND_POLL_INTERVAL below. These must stay in sync —
+// if the cache expired more often than the background poll refreshes it,
+// individual user visits would trigger extra fetches on top of the scheduled
+// ones, burning through the daily quota even faster.
+const cache = new NodeCache({ stdTTL: 2 * 60 * 60 });
 
 app.use(cors());
 app.use(express.static('public'));
@@ -461,7 +464,13 @@ app.post('/api/newsletter/subscribe', (req, res) => {
 // Poll feeds in the background every 15 minutes so notifications can fire
 // even when nobody currently has the page open (as long as the server is
 // running), and so the cache is always warm when a real visitor arrives.
-const BACKGROUND_POLL_INTERVAL = 15 * 60 * 1000;
+// Poll interval: APITube's ACTUAL free tier is 100 requests/day (confirmed
+// directly from the account dashboard — earlier docs/marketing pages had
+// suggested 1,000/day, which was wrong and caused a real outage). With 6
+// queries per cycle, every 2 hours uses 6 × 12 = 72/day, leaving headroom
+// for manual /api/news/refresh calls without risking hitting the 402 "no
+// points" error again.
+const BACKGROUND_POLL_INTERVAL = 2 * 60 * 60 * 1000;
 setInterval(async () => {
   try {
     const data = await fetchAllFeeds();
