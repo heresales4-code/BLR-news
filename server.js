@@ -62,7 +62,7 @@ const APITUBE_QUERIES = [
   { category: 'Civic', q: 'BBMP OR "Bengaluru civic" OR "Bangalore civic" OR "Karnataka civic" OR "Karnataka government"' },
   { category: 'Civic', q: '"Bangalore weather" OR "Bengaluru weather" OR "Karnataka weather" OR "Karnataka rain" OR monsoon' },
   { category: 'Karnataka', q: 'Karnataka' },
-  { category: 'Sports', q: 'cricket OR IPL OR "Team India" OR football OR Olympics OR badminton OR hockey OR tennis OR "World Cup"' }
+  { category: 'Sports', q: 'cricket OR IPL OR BCCI OR "Team India" OR "Indian cricket" OR "Indian football" OR "Indian hockey" OR "Indian Olympic" OR "Indian athlete"' }
 ];
 
 async function fetchFromAPITube(category, query) {
