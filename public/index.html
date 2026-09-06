@@ -374,14 +374,10 @@
       </div>
 
       <!-- Adsterra ad removed: their network showed adult/dating content
-           with no reliable publisher-side category blocking found. Replace
-           with a network that offers proper content-category controls
-           (e.g., AdSense's Blocking Controls) before adding a real ad here
-           again. -->
-      <div class="ad-slot" style="margin-bottom:20px;">
-        <div class="ad-label">Advertisement</div>
-        <div class="ad-sub">Space reserved for ad partner</div>
-      </div>
+           with no reliable publisher-side category blocking found. No
+           placeholder shown here either — see adSlot() below, which hides
+           all ad placeholders until ADSENSE_ENABLED is true, rather than
+           showing empty "Advertisement" boxes with nothing behind them. -->
 
       <div class="featured-card" id="featuredCard"></div>
 
@@ -527,10 +523,10 @@
 
   function adSlot(size){
     if (!ADSENSE_ENABLED) {
-      return `<div class="ad-slot">
-        <div class="ad-label">Advertisement</div>
-        <div class="ad-sub">${size} · space reserved for ad partner</div>
-      </div>`;
+      // No placeholder shown — an empty "Advertisement" box with nothing
+      // behind it looks unfinished. Real ad units render automatically once
+      // ADSENSE_CLIENT_ID and ADSENSE_SLOT_ID are both filled in above.
+      return '';
     }
     adUnitCounter++;
     return `<div class="ad-unit-wrap">
