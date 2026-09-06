@@ -190,6 +190,29 @@ function isKarnatakaRelevant(story) {
   return KARNATAKA_RELEVANCE_PATTERN.test(text);
 }
 
+// Some sources write in a sensationalized, vague style that tells you
+// nothing concrete — "What they did next is truly horrifying", "Read
+// Details" — rather than reporting what actually happened. This is a
+// different problem from junk boilerplate (the text is grammatically fine,
+// just deliberately vague for clicks), so it needs its own filter.
+const CLICKBAIT_PATTERNS = [
+  /read details/i,
+  /you won'?t believe/i,
+  /what (happened|they did) next/i,
+  /here'?s (the full story|what)/i,
+  /truly horrifying/i,
+  /left everyone (shocked|stunned)/i,
+  /!\s*(read|see|watch|click)/i,
+];
+
+function isClickbait(story) {
+  const text = `${story.headline} ${story.summary}`;
+  const matchCount = CLICKBAIT_PATTERNS.filter(p => p.test(text)).length;
+  // Headlines with multiple '!' are also a strong sensationalism signal
+  const exclamationCount = (story.headline.match(/!/g) || []).length;
+  return matchCount > 0 || exclamationCount >= 2;
+}
+
 // Compare freshly fetched stories against what we've already notified about,
 // and push a notification for genuinely new ones. Skips the very first run
 // (when seenLinks is empty) so we don't blast 50 "new" stories on first boot.
@@ -348,7 +371,7 @@ async function fetchAllFeeds() {
 
   // Drop stories that don't actually mention Bangalore/Karnataka anywhere —
   // see isKarnatakaRelevant for why this is needed.
-  const relevant = deduped.filter(isKarnatakaRelevant);
+  const relevant = deduped.filter(s => isKarnatakaRelevant(s) && !isClickbait(s));
 
   // Drop anything older than a week so the feed actually feels like "latest
   // news" instead of a mixed timeline going back months.
